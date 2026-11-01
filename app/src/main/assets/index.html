@@ -169,6 +169,10 @@ button{font:inherit;color:inherit;cursor:pointer}
   <label style="margin-top:14px">Qualidade do 3D<select id="cf_q"><option value="high">Alta</option><option value="low">Leve (tablets antigos)</option></select></label>
   <p id="cf_msg" role="status"></p>
   <div id="cf_map"></div>
+  <div class="rh">Cópia de segurança</div>
+  <p class="cfgp">Guarda o texto copiado (Notas, mensagem para ti). Serve para recuperar associações e cenas se reinstalares. Não inclui o Secret.</p>
+  <textarea id="cf_bk" rows="3" style="width:100%;box-sizing:border-box;background:var(--tile);border:0;border-radius:12px;padding:10px;color:var(--fg);font:12px monospace" placeholder="Cola aqui para restaurar" spellcheck="false"></textarea>
+  <div class="tch"><button type="button" class="tchip" id="cf_exp">Copiar configuração</button><button type="button" class="tchip" id="cf_imp">Restaurar</button></div>
   <button id="cf_close" class="cfbtn ghost" type="button">Fechar</button>
 </div></div>
 <script src="three.min.js"></script>
@@ -617,6 +621,11 @@ if(NA){
   document.getElementById('cf_go').onclick=function(){ connect(true); };
   var cq=document.getElementById('cf_q'); cq.value=LOW?'low':'high'; cq.onchange=function(){ try{ localStorage.setItem(QK,cq.value); }catch(e){} location.reload(); };
   document.getElementById('cf_close').onclick=function(){ cfgEl.hidden=true; };
+  document.getElementById('cf_exp').onclick=function(){ var c=tcfg(), ta=document.getElementById('cf_bk'); ta.value=JSON.stringify({v:1,map:MAP,scenes:SCN,st:st,tuya:{id:c.id||'',uid:c.uid||''}}); ta.focus(); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} cfMsg.textContent=ok?'Configuração copiada. Guarda-a num sítio seguro.':'Seleciona o texto e copia-o à mão.'; };
+  document.getElementById('cf_imp').onclick=function(){ var o; try{ o=JSON.parse(document.getElementById('cf_bk').value); }catch(e){ cfMsg.textContent='Texto inválido.'; return; }
+    if(o.map){ MAP=o.map; saveMap(); } if(o.scenes&&o.scenes.length){ SCN=o.scenes; saveScenes(); mkScenes(); } if(o.st){ DEV.forEach(function(d){ if(o.st[d.id]) st[d.id]=o.st[d.id]; }); save(); DEV.forEach(function(d){ applyLook(d.id); }); }
+    if(o.tuya&&o.tuya.id){ NA.saveConfig(o.tuya.id,'',o.tuya.uid||''); document.getElementById('cf_id').value=o.tuya.id; document.getElementById('cf_uid').value=o.tuya.uid||''; }
+    refresh(); drawMap(); cfMsg.textContent='Configuração restaurada. Volta a colar o Secret e liga.'; };
   var c0=tcfg(); if(c0.id&&c0.hasSecret&&c0.uid){ poll(); }
   setInterval(poll,15000);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) poll(); });
