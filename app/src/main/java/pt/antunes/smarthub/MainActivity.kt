@@ -49,6 +49,7 @@ class MainActivity : Activity() {
         web.webChromeClient = WebChromeClient()
         setContentView(web)
         if (savedInstanceState == null) web.loadUrl("file:///android_asset/index.html")
+        intent?.getStringExtra("cfg")?.let { c -> web.postDelayed({ importCfg(c) }, 2500) }
         else web.restoreState(savedInstanceState)
         fs = getSharedPreferences("hub", MODE_PRIVATE).getBoolean("fs", true)
         web.addJavascriptInterface(HubBridge(), "HubNative")
@@ -127,6 +128,15 @@ class MainActivity : Activity() {
                 pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK) ||
                 !pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TOUCHSCREEN)
         }
+        @JavascriptInterface fun exportPrefs(): String {
+            val o = org.json.JSONObject()
+            for (n in listOf("tuya", "tlocal", "tv", "spotify")) {
+                val t = org.json.JSONObject()
+                for ((k, v) in getSharedPreferences(n, MODE_PRIVATE).all) t.put(k, v)
+                o.put(n, t)
+            }
+            return o.toString()
+        }
         @JavascriptInterface fun setFullscreen(on: Boolean) {
             fs = on
             getSharedPreferences("hub", MODE_PRIVATE).edit().putBoolean("fs", on).apply()
@@ -134,8 +144,28 @@ class MainActivity : Activity() {
         }
     }
 
+    /** Importa a configuração (chaves nativas + dados da página) vinda de outro aparelho. */
+    private fun importCfg(b64: String) {
+        try {
+            val txt = String(android.util.Base64.decode(b64, android.util.Base64.DEFAULT), Charsets.UTF_8)
+            val o = org.json.JSONObject(txt)
+            val pr = o.optJSONObject("p")
+            if (pr != null) for (n in pr.keys()) {
+                val e = getSharedPreferences(n, MODE_PRIVATE).edit(); val t = pr.getJSONObject(n)
+                for (k in t.keys()) { val v = t.get(k); when (v) { is Boolean -> e.putBoolean(k, v); is Int -> e.putInt(k, v); is Long -> e.putLong(k, v); is String -> e.putString(k, v) } }
+                e.apply()
+            }
+            val ls = o.optJSONObject("ls")
+            if (ls != null) {
+                val js = "try{var d=" + ls.toString() + ";for(var k in d)localStorage.setItem(k,d[k]);}catch(e){};location.reload();"
+                web.post { web.evaluateJavascript(js, null) }
+            } else web.post { web.reload() }
+        } catch (e: Exception) { }
+    }
+
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
+        intent.getStringExtra("cfg")?.let { importCfg(it) }
         intent.data?.let { if (it.scheme == "smarthub") spotify.handleRedirect(it) }
     }
 
