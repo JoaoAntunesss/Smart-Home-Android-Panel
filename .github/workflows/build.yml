@@ -2,6 +2,8 @@ name: Build APK
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,7 +14,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.9 }
       - run: gradle assembleDebug --no-daemon
+      - run: cp app/build/outputs/apk/debug/app-debug.apk SmartHub.apk
       - uses: actions/upload-artifact@v4
         with:
           name: SmartHub-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: SmartHub.apk
+      - name: Publicar APK em Releases (link fixo)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --cleanup-tag -y || true
+          gh release create latest SmartHub.apk --title "Smart Hub (última versão)" --notes "APK de teste (debug). Android 5.0 ou superior. Descarrega SmartHub.apk e instala."
