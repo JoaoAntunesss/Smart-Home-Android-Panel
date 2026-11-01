@@ -40,6 +40,7 @@ class MainActivity : Activity() {
             cacheMode = WebSettings.LOAD_DEFAULT
         }
         web.addJavascriptInterface(TuyaBridge(this, web), "TuyaNative")
+        web.addJavascriptInterface(com.antunes.remote.TvBridge(this, web), "TvNative")
         web.webViewClient = WebViewClient()
         web.webChromeClient = WebChromeClient()
         setContentView(web)
