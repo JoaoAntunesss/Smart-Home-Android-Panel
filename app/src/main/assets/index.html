@@ -81,6 +81,60 @@ button{font:inherit;color:inherit;cursor:pointer}
 .row:not(.on) .step{background:rgba(255,255,255,.08)}
 .temp span{min-width:30px;text-align:center;font-weight:700;font-size:12.5px}
 #note{grid-column:1/-1;color:var(--mute);font-size:11.5px;text-align:center;margin:4px 0 0}
+#fs{flex:none;width:40px;height:40px;border:0;background:var(--tile);border-radius:50%;display:grid;place-items:center;padding:0;color:var(--mute)}
+#fs svg{width:18px;height:18px}
+.scenes{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.scenes::-webkit-scrollbar{display:none}
+.scene{flex:0 0 84px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.scene.add{background:transparent;border:1px dashed var(--line);color:var(--mute)}
+.scene.add svg{color:var(--mute)}
+.row{-webkit-touch-callout:none;-webkit-user-select:none}
+.more{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.07);color:inherit;display:grid;place-items:center;padding:0}
+.row.on .more{background:rgba(43,28,0,.13)}
+.more svg{width:16px;height:16px}
+.ov{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.62);display:flex;align-items:flex-end;justify-content:center;z-index:60}
+.ov[hidden]{display:none}
+.ov .cfgbox{max-width:560px}
+.dthead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.dthead h2{margin:0}
+.xbtn{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--tile);color:var(--fg);font-size:22px;line-height:1;padding:0}
+.dtp{display:flex;align-items:center;gap:14px}
+.dtp b{display:block;font-size:15px}
+.dtp small{color:var(--mute);font-size:12.5px}
+.pwr{flex:none;width:64px;height:64px;border-radius:50%;border:0;background:var(--tile);color:var(--mute);display:grid;place-items:center;padding:0}
+.pwr.on{background:var(--amber);color:var(--amber-ink)}
+.pwr svg{width:28px;height:28px}
+.dsec{margin:18px 0 0}
+.dsec h4{margin:0 0 2px;font:700 11.5px var(--font-body);color:var(--mute);letter-spacing:.07em;text-transform:uppercase;display:flex;justify-content:space-between}
+.dsec h4 span+span{color:var(--fg);letter-spacing:0}
+.sl{display:block;width:100%;height:32px;-webkit-appearance:none;appearance:none;background:transparent;margin:4px 0;padding:0}
+.sl::-webkit-slider-runnable-track{height:12px;border-radius:99px;background:var(--trk,#444)}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-7px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 6px rgba(0,0,0,.55)}
+.sw8{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.sw8 button{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.18);padding:0}
+.tch{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tchip{border:0;background:var(--tile);color:var(--fg);border-radius:99px;padding:9px 14px;font-weight:600;font-size:13px}
+.tchip.on{background:var(--amber);color:var(--amber-ink)}
+.tchip svg{width:18px;height:18px;display:block}
+.heat{display:flex;align-items:center;justify-content:center;gap:24px;margin:8px 0 0}
+.heat b{font:700 46px var(--font-display);min-width:110px;text-align:center}
+.heat button{width:50px;height:50px;border-radius:50%;border:0;background:var(--tile);font-size:26px;color:var(--fg);padding:0}
+.seg{display:flex;background:var(--tile);border-radius:12px;padding:3px;gap:2px;flex:none}
+.seg button{border:0;background:transparent;color:var(--mute);padding:7px 10px;border-radius:9px;font-weight:600;font-size:12px}
+.seg button.on{background:var(--fg);color:#16171c}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:13.5px;font-weight:600}
+.srow span{min-width:0}
+.rh{margin:14px 0 2px;font:700 11.5px var(--font-body);color:var(--mute);letter-spacing:.07em;text-transform:uppercase}
+.mut{color:var(--mute);font-size:12.5px}
+@media (orientation:landscape) and (min-width:700px){
+  body{display:grid;grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:auto minmax(0,1fr)}
+  #top{grid-column:1;grid-row:1}
+  #stage{grid-column:1;grid-row:2}
+  #sheet{grid-column:2;grid-row:1 / 3;height:auto;border-radius:28px 0 0 28px}
+  #list{grid-template-columns:repeat(2,1fr)}
+  .ov{align-items:center}
+  .ov .cfgbox{border-radius:28px;max-height:86vh}
+}
 @media (prefers-reduced-motion:reduce){.row,#toast,#hint{transition:none}}
 </style>
 
@@ -89,7 +143,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     <h1>A minha casa</h1>
     <p id="sum"></p>
   </div>
-  <div class="hr"><button id="gear" type="button" aria-label="Ligar à Tuya" hidden></button><button id="dn" type="button" aria-pressed="true" aria-label="Alternar dia e noite"></button></div>
+  <div class="hr"><button id="fs" type="button" aria-label="Ecrã inteiro"></button><button id="gear" type="button" aria-label="Ligar à Tuya" hidden></button><button id="dn" type="button" aria-pressed="true" aria-label="Alternar dia e noite"></button></div>
 </header>
 <main id="stage">
   <canvas id="c" aria-label="Casa em 3D. Arrasta para rodar, toca nas luzes para ligar ou desligar."></canvas>
@@ -103,6 +157,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="list"></div>
 </section>
 
+<div id="dt" class="ov" hidden role="dialog" aria-label="Controlos do aparelho"><div class="cfgbox" id="dtbox"></div></div>
+<div id="sc" class="ov" hidden role="dialog" aria-label="Cena"><div class="cfgbox" id="scbox"></div></div>
 <div id="cfg" hidden role="dialog" aria-label="Ligar à Tuya"><div class="cfgbox">
   <h2>Ligar à Tuya</h2>
   <p class="cfgp">Os dados ficam guardados só neste aparelho.</p>
@@ -270,11 +326,11 @@ function windowAt(cx,cz,len,alongX){
   var f=new THREE.Mesh(new THREE.BoxGeometry(alongX?len+0.1:0.26,0.86,alongX?0.26:len+0.1),new THREE.MeshStandardMaterial({color:0x15161a,roughness:.5})); f.position.set(cx,0.95,cz); scene.add(f);
   var g=new THREE.Mesh(new THREE.BoxGeometry(alongX?len:0.3,0.74,alongX?0.3:len),new THREE.MeshBasicMaterial({color:0x9fc4ff,transparent:true,opacity:.42})); g.position.set(cx,0.95,cz); scene.add(g);
 }
-windowAt(0,1.8,1.0,false);   // quarto: à esquerda da cama
+windowAt(2.6,0,0.8,true);   // suite: janela na parede de cima
 windowAt(0,7.0,1.0,false);   // visitas
 windowAt(6.6,0,0.8,true);    // sala: à esquerda do sofá
 windowAt(11.6,0,1.4,true); windowAt(13.2,0,1.4,true);   // cozinha: à esquerda da banca
-windowAt(9.7,9.8,0.8,true);  // escritório
+
 
 /* ------------------------------------------------------------- mobília */
 var WAL=0x6b4a30, OAK=0xa8794a, FAB=0xcfc8ba, SOFA=0x3a3c41, DARK=0x1c1d22, WHT=0xf1efea, GRY=0x3a3c41, LBR=0xc79f70;
@@ -301,7 +357,8 @@ box(10.15,1.6,0.9,1.4,0.5,WHT); [[11.4,2.0],[11.4,2.8]].forEach(function(p){ cyl
 box(13.6,3.6,0.8,1.4,0.8,0xf4f0e8); box(13.45,5.45,0.9,0.35,1.1,OAK);                                                     // despensa: arca à direita, prateleiras na parede de baixo
 box(14.05,8.0,0.3,1.2,0.7,OAK);                                                                                            // entrada
 box(6.05,0.12,0.25,0.18,1.2,0x2a2d38,0.2); box(6.95,0.12,0.25,0.18,1.2,0x2a2d38,0.2);                                      // cortinas da sala
-box(0.12,1.15,0.18,0.25,1.2,0x2a2d38,0.2); box(0.12,2.3,0.18,0.25,1.2,0x2a2d38,0.2);                                       // cortinas do quarto
+box(2.05,0.12,0.25,0.18,1.2,0x2a2d38,0.2); box(2.95,0.12,0.25,0.18,1.2,0x2a2d38,0.2);   // cortinas da suite (parede de cima)
+box(0.12,6.35,0.18,0.25,1.2,0x2a2d38,0.2); box(0.12,7.5,0.18,0.25,1.2,0x2a2d38,0.2);   // cortinas das visitas
 cyl(6.35,3.85,0.03,1.0,0x222226); cyl(6.35,3.85,0.18,0.25,0xf1e7cf,1.0,{e:0xffd9a0,ei:.5});                                // candeeiro de pé
 cyl(9.65,0.5,0.2,0.3,WAL); cyl(9.65,0.5,0.28,0.5,0x3f6b4a,0.36);                                                         // planta
 
@@ -441,32 +498,20 @@ function mkChips(){
     b.innerHTML=(k==='all'?'Casa toda':R[k].n)+'<small>'+n+'</small>'; b.onclick=function(){ setSel(k); }; chipsEl.appendChild(b);
   });
 }
-function mkScenes(){
-  scenesEl.innerHTML=''; SCENES.forEach(function(sc){
-    var b=document.createElement('button'); b.className='scene'; b.innerHTML=ICO[sc.ico]+'<span>'+sc.n+'</span>';
-    b.onclick=function(){ var pv={}; DEV.forEach(function(d){ pv[d.id]=st[d.id].on; }); sc.f(st); save(); refresh(); toast('Cena: '+sc.n); DEV.forEach(function(d){ if(pv[d.id]!==st[d.id].on) sendSwitch(d.id,st[d.id].on); }); }; scenesEl.appendChild(b);
-  });
-}
 function mkList(){
   var items=DEV.filter(function(d){ return catOk(d)&&(sel==='all'||d.room===sel||d.room2===sel); });
   listEl.innerHTML='';
   items.forEach(function(d){
     var s=st[d.id], row=document.createElement('div'); row.className='row'+(s.on?' on':'');
     row.tabIndex=0; row.setAttribute('role','switch'); row.setAttribute('aria-checked',s.on); row.setAttribute('aria-label',d.name+', '+R[d.room].n);
-    var state=d.kind==='cam'?(s.on?'a gravar':'em pausa'):d.kind==='heater'?(s.on?'ligado':'desligado'):d.kind==='plug'?(s.on?'ligada':'desligada'):(s.on?'acesa':'apagada');
-    row.innerHTML='<span class="ico">'+kindIco(d)+'</span><div class="meta"><b>'+d.name+'</b><small>'+(sel==='all'?R[d.room].n+' · ':'')+state+'</small></div>';
-    if(d.kind==='heater'){
-      var t=document.createElement('div'); t.className='temp'; t.innerHTML='<button class="step" aria-label="Baixar temperatura">−</button><span>'+s.temp+'°</span><button class="step" aria-label="Subir temperatura">+</button>';
-      var bs=t.querySelectorAll('button');
-      bs[0].onclick=function(e){ e.stopPropagation(); s.temp=Math.max(10,s.temp-1); save(); refresh(); };
-      bs[1].onclick=function(e){ e.stopPropagation(); s.temp=Math.min(30,s.temp+1); save(); refresh(); };
-      row.appendChild(t);
-    }
-    row.onclick=function(){ toggle(d.id,false); };
+    var state=d.kind==='cam'?(s.on?'a gravar':'em pausa'):d.kind==='heater'?(s.on?'ligado · '+s.temp+'°':'desligado'):d.kind==='plug'?(s.on?'ligada':'desligada'):(s.on?'acesa':'apagada');
+    row.innerHTML='<span class="ico">'+kindIco(d)+'</span><div class="meta"><b>'+esc(d.name)+'</b><small>'+(sel==='all'?esc(R[d.room].n)+' · ':'')+state+'</small></div>';
+    if(d.kind!=='cam'){ var mb=document.createElement('button'); mb.type='button'; mb.className='more'; mb.setAttribute('aria-label','Controlos de '+d.name); mb.innerHTML=ICO.sliders; mb.onclick=function(e){ e.stopPropagation(); openDetail(d.id); }; mb.addEventListener('pointerdown',function(e){ e.stopPropagation(); }); row.appendChild(mb); }
+    longPress(row,function(){ if(d.kind!=='cam') openDetail(d.id); },function(){ toggle(d.id,false); });
     row.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(d.id,false); } };
     listEl.appendChild(row);
   });
-  var n=document.createElement('p'); n.id='note'; n.textContent=linked?('Ligado à Tuya · '+Object.keys(MAP).length+' aparelhos associados'):(NA?'Toca na engrenagem para ligar à Tuya.':'Demonstração: os botões não controlam aparelhos reais. Instala a app Android para ligar à Tuya.'); listEl.appendChild(n);
+  var n=document.createElement('p'); n.id='note'; n.textContent=linked?('Ligado à Tuya · '+Object.keys(MAP).length+' aparelhos associados'):(NA?'Toca no raio para ligar à Tuya.':'Demonstração: os botões não controlam aparelhos reais. Instala a app Android para ligar à Tuya.'); listEl.appendChild(n);
 }
 function refresh(){
   var ls=DEV.filter(function(d){return LIGHT_KINDS[d.kind];}), on=ls.filter(function(d){return st[d.id].on;}).length;
@@ -485,7 +530,7 @@ var cat='all';
 function catOk(d){ return cat==='all'||(cat==='luzes'&&LIGHT_KINDS[d.kind])||(cat==='clima'&&d.kind==='heater')||(cat==='cam'&&d.kind==='cam'); }
 // botões sobre os objetos, só nos quartos, na cozinha e na sala
 var BADGE_ROOMS={quarto:1,visitas:1,cozinha:1,marquise:1,sala:1,escritorio:1}, badges=[];
-DEV.forEach(function(d){ if(!BADGE_ROOMS[d.room]) return; var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); b.onclick=function(){ toggle(d.id,true); }; labelsEl.appendChild(b); badges.push({d:d,el:b}); });
+DEV.forEach(function(d){ if(!BADGE_ROOMS[d.room]) return; var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); longPress(b,function(){ openDetail(d.id); },function(){ toggle(d.id,true); }); labelsEl.appendChild(b); badges.push({d:d,el:b}); });
 /* ------------------------------------------------------------ Tuya (só na app Android) */
 var NA=window.TuyaNative||null, MAPKEY='casa3d-map-v1', MAP={}, TD=[], cbs={}, cbn=0, linked=false, lastCmd={};
 try{ MAP=JSON.parse(localStorage.getItem(MAPKEY)||'{}')||{}; }catch(e){}
@@ -506,7 +551,7 @@ function loadDevices(){
 }
 function syncFromTuya(){
   if(!linked) return; var changed=false, now=Date.now();
-  DEV.forEach(function(d){ var m=MAP[d.id]; if(!m||(lastCmd[d.id]&&now-lastCmd[d.id]<5000)) return; var td=tdev(m), c=swCode(td); if(!c) return;
+  DEV.forEach(function(d){ var m=MAP[d.id]; if(!m||(lastCmd[d.id]&&now-lastCmd[d.id]<5000)) return; var td=tdev(m), c=swCode(td); if(td&&LIGHT_KINDS[d.kind]) readLook(d,td); if(td&&d.kind==='heater') readHeat(d,td); if(!c) return;
     var v=td.status.filter(function(x){return x.code===c;})[0].value; if(st[d.id].on!==v){ st[d.id].on=v; changed=true; } });
   if(changed){ save(); refresh(); }
 }
@@ -519,7 +564,8 @@ function sendSwitch(id,on){
     else{ td.status.forEach(function(x){ if(x.code===c) x.value=!!on; }); }
   });
 }
-function poll(){ if(!NA) return; loadDevices().then(syncFromTuya).catch(function(){}); }
+function prefetch(){ var ps=[]; DEV.forEach(function(d){ if(MAP[d.id]&&!SPEC[MAP[d.id]]) ps.push(specOf(MAP[d.id])); }); return Promise.all(ps).then(function(){ syncFromTuya(); }); }
+function poll(){ if(!NA) return; loadDevices().then(function(){ syncFromTuya(); return prefetch(); }).catch(function(){}); }
 var cfgEl=document.getElementById('cfg'), gear=document.getElementById('gear'), cfMsg=document.getElementById('cf_msg');
 function setGear(){ gear.classList.toggle('ok',linked); }
 function nrm(s){ s=String(s||'').toLowerCase(); try{ s=s.normalize('NFD').replace(/[̀-ͯ]/g,''); }catch(e){} return s; }
@@ -575,6 +621,192 @@ if(NA){
   setInterval(poll,15000);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) poll(); });
 }
+
+/* ------------------------------------------------------------ utilitários */
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function longPress(el,onLong,onClick){
+  var t=null, fired=false;
+  el.addEventListener('pointerdown',function(){ fired=false; clearTimeout(t); t=setTimeout(function(){ fired=true; onLong(); },550); });
+  ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ el.addEventListener(ev,function(){ clearTimeout(t); }); });
+  el.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  el.addEventListener('click',function(e){ if(fired){ fired=false; e.stopImmediatePropagation(); e.preventDefault(); return; } onClick(e); });
+}
+ICO.plus='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+ICO.power='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v8M6.6 6.6a8 8 0 1 0 10.8 0"/></svg>';
+ICO.sliders='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>';
+ICO.expand='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+
+/* ------------------------------------------------------------ ecrã inteiro */
+var fsb=document.getElementById('fs'); fsb.innerHTML=ICO.expand;
+fsb.onclick=function(){
+  if(window.HubNative){ window.HubNative.setFullscreen(!window.HubNative.isFullscreen()); return; }
+  var de=document.documentElement;
+  try{ if(!document.fullscreenElement&&de.requestFullscreen) de.requestFullscreen(); else if(document.exitFullscreen) document.exitFullscreen(); }catch(e){}
+};
+
+/* ------------------------------------------------------------ aspeto das luzes (cor / brilho) */
+var C_WARM=new THREE.Color(0xffb35a), C_COOL=new THREE.Color(0xcfe4ff);
+function applyLook(id){
+  var d=dev(id), s=st[id]; if(!d||!LIGHT_KINDS[d.kind]||!d.col3) return;
+  if(!d.base3) d.base3=d.col3.clone();
+  if(s.mode==='colour'&&s.hue!=null) d.col3.setHSL(s.hue/360,1,0.6);
+  else if(s.kel!=null) d.col3.copy(C_WARM).lerp(C_COOL,s.kel/100);
+  else d.col3.copy(d.base3);
+}
+DEV.forEach(function(d){ applyLook(d.id); });
+
+/* ------------------------------------------------------------ capacidades (Tuya ou simuladas) */
+var SPEC={}, DEFR={bright_value_v2:[10,1000],bright_value:[25,255],temp_value_v2:[0,1000],temp_value:[0,255],temp_set:[5,35],set_temp:[5,35]};
+function specOf(tid){
+  if(SPEC[tid]) return Promise.resolve(SPEC[tid]);
+  return tcall('GET','/v1.0/devices/'+tid+'/specifications').then(function(r){
+    var m={}; if(r.success&&r.result) (r.result.functions||[]).forEach(function(f){ var v={}; try{ v=JSON.parse(f.values||'{}'); }catch(e){} m[f.code]={type:f.type,v:v}; });
+    SPEC[tid]=m; return m; });
+}
+function pick(m,names){ for(var i=0;i<names.length;i++) if(m[names[i]]) return names[i]; return null; }
+function fromSpec(m){
+  return { m:m, bri:pick(m,['bright_value_v2','bright_value']), kel:pick(m,['temp_value_v2','temp_value']), col:pick(m,['colour_data_v2','colour_data']),
+    wm:m.work_mode?'work_mode':null, tset:pick(m,['temp_set','set_temp']), mode:(m.mode&&m.mode.v&&m.mode.v.range)||null,
+    cd:pick(m,['countdown_1','countdown']), cds:(m.countdown_set&&m.countdown_set.v&&m.countdown_set.v.range)||null };
+}
+function byKind(d){ var l=LIGHT_KINDS[d.kind]; return {m:{},sim:true,bri:l?'sim':null,kel:l?'sim':null,col:l?'sim':null,tset:d.kind==='heater'?'sim':null,cd:d.kind!=='cam'?'sim':null}; }
+function capsOf(d){ var tid=MAP[d.id]; if(NA&&tid) return specOf(tid).then(fromSpec); return Promise.resolve(byKind(d)); }
+function rg(c,code,def){ var m=c.m&&c.m[code], v=(m&&m.v)||{}, d=DEFR[code]||[0,100]; return {min:v.min!=null?v.min:d[0],max:v.max!=null?v.max:d[1],scale:v.scale||0}; }
+function clamp(x,a,b){ return Math.max(a,Math.min(b,x)); }
+function readLook(d,td){
+  var m=SPEC[td.id]; if(!m) return; var s=st[d.id], c=fromSpec(m), g={}, r;
+  td.status.forEach(function(x){ g[x.code]=x.value; });
+  if(c.bri&&g[c.bri]!=null){ r=rg(c,c.bri); s.bri=clamp(Math.round((g[c.bri]-r.min)/(r.max-r.min)*100),1,100); }
+  if(c.kel&&g[c.kel]!=null){ r=rg(c,c.kel); s.kel=clamp(Math.round((g[c.kel]-r.min)/(r.max-r.min)*100),0,100); }
+  if(c.wm&&g.work_mode) s.mode=(g.work_mode==='colour')?'colour':'white';
+  var cv=c.col?g[c.col]:null; if(typeof cv==='string'){ try{ cv=JSON.parse(cv); }catch(e){ cv=null; } }
+  if(cv&&cv.h!=null) s.hue=cv.h;
+  applyLook(d.id);
+}
+function readHeat(d,td){ var m=SPEC[td.id]; if(!m) return; var c=fromSpec(m); if(!c.tset) return; var x=td.status.filter(function(q){ return q.code===c.tset; })[0]; if(x){ var r=rg(c,c.tset); st[d.id].temp=Math.round(x.value/Math.pow(10,r.scale)); } }
+function tsend(id,cmds){ var tid=MAP[id]; if(!NA||!tid) return; lastCmd[id]=Date.now(); tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:cmds}).then(function(r){ if(!r.success) toast('Erro Tuya: '+(r.msg||'falhou')); }); }
+function pushBri(d,c){ var s=st[d.id]; if(s.mode==='colour'&&c.col){ pushHue(d,c); return; } if(!c.bri||c.bri==='sim') return; var r=rg(c,c.bri); tsend(d.id,[{code:c.bri,value:Math.round(r.min+(r.max-r.min)*s.bri/100)}]); }
+function pushKel(d,c){ if(!c.kel||c.kel==='sim') return; var r=rg(c,c.kel), cm=[]; if(c.wm) cm.push({code:'work_mode',value:'white'}); cm.push({code:c.kel,value:Math.round(r.min+(r.max-r.min)*st[d.id].kel/100)}); tsend(d.id,cm); }
+function pushHue(d,c){ if(!c.col||c.col==='sim') return; var s=st[d.id], v2=c.col==='colour_data_v2', mx=v2?1000:255, cm=[], val={h:Math.round(s.hue||0),s:mx,v:Math.max(v2?10:25,Math.round(mx*(s.bri==null?100:s.bri)/100))}; if(c.wm) cm.push({code:'work_mode',value:'colour'}); cm.push({code:c.col,value:v2?val:JSON.stringify(val)}); tsend(d.id,cm); }
+
+/* ------------------------------------------------------------ painel de controlo do aparelho */
+var DTE=document.getElementById('dt'), dtId=null;
+var MODEN={auto:'Automático',manual:'Manual',eco:'Eco',holiday:'Férias',comfortable:'Conforto',smart:'Inteligente',off:'Desligado',cancel:'Cancelar'};
+var TMS=[[900,'15 min'],[1800,'30 min'],[3600,'1 h'],[7200,'2 h']];
+function openDetail(id){ dtId=id; DTE.hidden=false; renderDetail(); }
+function closeDetail(){ DTE.hidden=true; dtId=null; }
+DTE.addEventListener('click',function(e){ if(e.target===DTE) closeDetail(); });
+function fmtLeft(ms){ var s=Math.max(0,Math.round(ms/1000)), m=Math.floor(s/60); return m+':'+('0'+(s%60)).slice(-2); }
+function renderDetail(){
+  var d=dev(dtId); if(!d) return; var s=st[d.id], box=document.getElementById('dtbox');
+  box.innerHTML='<div class="dthead"><div><h2>'+esc(d.name)+'</h2><p class="cfgp" style="margin:2px 0 0">'+esc(R[d.room].n)+'</p></div><button class="xbtn" id="dt_x" type="button" aria-label="Fechar">×</button></div>'
+    +'<div class="dtp"><button class="pwr'+(s.on?' on':'')+'" id="dt_p" type="button" aria-label="Ligar ou desligar">'+ICO.power+'</button><div><b>'+(s.on?'Ligado':'Desligado')+'</b><small id="dt_l"></small></div></div><div id="dt_b"></div>';
+  document.getElementById('dt_x').onclick=closeDetail;
+  document.getElementById('dt_p').onclick=function(){ toggle(d.id,false); renderDetail(); };
+  tickTimers();
+  capsOf(d).then(function(c){
+    if(dtId!==d.id) return; var b=document.getElementById('dt_b'), any=false;
+    if(c.bri){ any=true; b.appendChild(secSlider('Brilho','r_b',1,100,s.bri==null?100:s.bri,'linear-gradient(90deg,#3a3d48,#f2b134)','%',function(v){ s.bri=v; applyLook(d.id); save(); },function(){ pushBri(d,c); })); }
+    if(c.kel){ any=true; b.appendChild(secSlider('Branco · quente ↔ frio','r_k',0,100,s.kel==null?30:s.kel,'linear-gradient(90deg,#ffb35a,#fff4e0,#cfe4ff)','',function(v){ s.mode='white'; s.kel=v; applyLook(d.id); save(); },function(){ pushKel(d,c); })); }
+    if(c.col){ any=true; var sc=secSlider('Cor','r_h',0,360,s.hue==null?30:s.hue,'linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)','',function(v){ s.mode='colour'; s.hue=v; applyLook(d.id); save(); },function(){ pushHue(d,c); });
+      var sw=document.createElement('div'); sw.className='sw8';
+      [0,30,55,130,175,215,275,325].forEach(function(h){ var bt=document.createElement('button'); bt.type='button'; bt.setAttribute('aria-label','Cor '+h); bt.style.background='hsl('+h+',100%,55%)'; bt.onclick=function(){ s.mode='colour'; s.hue=h; applyLook(d.id); save(); var r=document.getElementById('r_h'); if(r) r.value=h; pushHue(d,c); }; sw.appendChild(bt); });
+      sc.appendChild(sw); b.appendChild(sc); }
+    if(c.tset){ any=true; b.appendChild(secHeat(d,c)); }
+    if(c.mode&&c.mode.length){ any=true; var sm=document.createElement('div'); sm.className='dsec'; sm.innerHTML='<h4><span>Modo</span></h4>'; var tc=document.createElement('div'); tc.className='tch';
+      var cur=s.hmode||(function(){ var td=tdev(MAP[d.id]); var x=td&&td.status.filter(function(q){return q.code==='mode';})[0]; return x?x.value:null; })();
+      c.mode.forEach(function(mv){ var bt=document.createElement('button'); bt.type='button'; bt.className='tchip'+(cur===mv?' on':''); bt.textContent=MODEN[mv]||mv; bt.onclick=function(){ s.hmode=mv; save(); tsend(d.id,[{code:'mode',value:mv}]); renderDetail(); }; tc.appendChild(bt); }); sm.appendChild(tc); b.appendChild(sm); }
+    if(c.cd||c.cds){ any=true; b.appendChild(secTimer(d,c)); }
+    if(!any){ var n=document.createElement('p'); n.className='mut'; n.style.marginTop='16px'; n.textContent='Este aparelho só tem interruptor.'; b.appendChild(n); }
+    tickTimers();
+  });
+}
+function secSlider(title,id,mn,mx,val,trk,unit,onInput,onChange){
+  var sec=document.createElement('div'); sec.className='dsec';
+  sec.innerHTML='<h4><span>'+title+'</span><span id="'+id+'_v">'+(unit?val+unit:'')+'</span></h4><input class="sl" id="'+id+'" type="range" min="'+mn+'" max="'+mx+'" value="'+val+'" aria-label="'+title+'">';
+  var r=sec.querySelector('input'); r.style.setProperty('--trk',trk);
+  r.addEventListener('input',function(){ var v=+r.value; var lb=document.getElementById(id+'_v'); if(lb&&unit) lb.textContent=v+unit; onInput(v); });
+  r.addEventListener('change',onChange);
+  return sec;
+}
+function secHeat(d,c){
+  var s=st[d.id], sec=document.createElement('div'), r=c.sim?{min:10,max:30,scale:0}:rg(c,c.tset), mn=r.min/Math.pow(10,r.scale), mx=r.max/Math.pow(10,r.scale);
+  sec.className='dsec'; sec.innerHTML='<h4><span>Temperatura</span></h4><div class="heat"><button type="button" aria-label="Baixar">−</button><b>'+s.temp+'°</b><button type="button" aria-label="Subir">+</button></div>';
+  var bs=sec.querySelectorAll('button'), out=sec.querySelector('b');
+  function set(t){ s.temp=clamp(t,mn,mx); out.textContent=s.temp+'°'; save(); refresh(); if(!c.sim) tsend(d.id,[{code:c.tset,value:Math.round(s.temp*Math.pow(10,r.scale))}]); }
+  bs[0].onclick=function(){ set(s.temp-1); }; bs[1].onclick=function(){ set(s.temp+1); };
+  return sec;
+}
+function secTimer(d,c){
+  var s=st[d.id], sec=document.createElement('div'), tc, opts=[];
+  sec.className='dsec'; sec.innerHTML='<h4><span>'+(s.on?'Desligar em':'Ligar em')+'</span><span id="dt_t"></span></h4>'; tc=document.createElement('div'); tc.className='tch';
+  if(c.cds&&c.cd!=='sim'&&!c.cd){ c.cds.forEach(function(v){ var m=/^(\d+)(h|m)/.exec(v); opts.push([v,MODEN[v]||v,m?(+m[1])*(m[2]==='h'?3600:60):0]); }); }
+  else{ TMS.forEach(function(t){ opts.push([t[0],t[1],t[0]]); }); opts.push([0,'Cancelar',0]); }
+  opts.forEach(function(o){ var bt=document.createElement('button'); bt.type='button'; bt.className='tchip'; bt.textContent=o[1];
+    bt.onclick=function(){ var sec_=o[2]; s.until=sec_>0?Date.now()+sec_*1000:null; save();
+      if(NA&&MAP[d.id]&&!c.sim){ if(c.cd) tsend(d.id,[{code:c.cd,value:sec_}]); else if(c.cds) tsend(d.id,[{code:'countdown_set',value:o[0]}]); }
+      toast(sec_>0?'Temporizador: '+o[1]:'Temporizador cancelado'); renderDetail(); };
+    tc.appendChild(bt); });
+  sec.appendChild(tc); return sec;
+}
+function tickTimers(){
+  var now=Date.now(), ch=false;
+  DEV.forEach(function(d){ var s=st[d.id]; if(s.until&&now>=s.until){ s.until=null; s.on=!s.on; ch=true; } });
+  if(ch){ save(); refresh(); if(!DTE.hidden&&dtId) renderDetail(); }
+  if(dtId){ var s2=st[dtId], l=document.getElementById('dt_l'), t=document.getElementById('dt_t'); var txt=s2.until?fmtLeft(s2.until-now):''; if(l) l.textContent=s2.until?('Temporizador · '+txt):''; if(t) t.textContent=txt; }
+}
+setInterval(tickTimers,1000);
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeDetail(); document.getElementById('sc').hidden=true; document.getElementById('cfg').hidden=true; } });
+
+/* ------------------------------------------------------------ cenas (programas) editáveis */
+var SCK='casa3d-cenas-v1', SCN=null;
+function aOf(allOn,on,extra){ var a={}; DEV.forEach(function(d){ if(LIGHT_KINDS[d.kind]) a[d.id]=allOn?'on':'off'; }); (on||[]).forEach(function(i){ a[i]='on'; }); Object.keys(extra||{}).forEach(function(k){ a[k]=extra[k]; }); return a; }
+function defScenes(){ return [
+  {id:'cinema',n:'Cinema',ico:'film',a:aOf(false,['sa_tv'])},
+  {id:'noite',n:'Noite',ico:'moon',a:aOf(false,['q_cab_e','q_cab_d','c_2','c_3'])},
+  {id:'sair',n:'Sair de casa',ico:'door',a:aOf(false,[],{sa_heat:'off',k_cam1:'on',d_cam2:'on'})},
+  {id:'tudo',n:'Tudo aceso',ico:'bulb',a:aOf(true)} ]; }
+try{ SCN=JSON.parse(localStorage.getItem(SCK)||'null'); }catch(e){}
+if(!SCN||!SCN.length) SCN=defScenes();
+function saveScenes(){ try{ localStorage.setItem(SCK,JSON.stringify(SCN)); }catch(e){} }
+function applyScene(sc){
+  var pv={}; DEV.forEach(function(d){ pv[d.id]=st[d.id].on; });
+  Object.keys(sc.a).forEach(function(id){ if(st[id]) st[id].on=(sc.a[id]==='on'); });
+  save(); refresh(); toast('Cena: '+sc.n);
+  DEV.forEach(function(d){ if(pv[d.id]!==st[d.id].on) sendSwitch(d.id,st[d.id].on); });
+}
+function mkScenes(){
+  scenesEl.innerHTML='';
+  SCN.forEach(function(sc){ var b=document.createElement('button'); b.type='button'; b.className='scene'; b.innerHTML=(ICO[sc.ico]||ICO.bulb)+'<span>'+esc(sc.n)+'</span>'; longPress(b,function(){ openScene(sc); },function(){ applyScene(sc); }); scenesEl.appendChild(b); });
+  var ad=document.createElement('button'); ad.type='button'; ad.className='scene add'; ad.innerHTML=ICO.plus+'<span>Nova cena</span>'; ad.onclick=function(){ openScene(null); }; scenesEl.appendChild(ad);
+}
+var SCE=document.getElementById('sc');
+SCE.addEventListener('click',function(e){ if(e.target===SCE) SCE.hidden=true; });
+function openScene(sc){
+  var w=sc?JSON.parse(JSON.stringify(sc)):{id:'s'+Date.now(),n:'',ico:'bulb',a:{}}, box=document.getElementById('scbox'), icos=['film','moon','door','bulb','heater','plug'];
+  box.innerHTML='<div class="dthead"><h2>'+(sc?'Editar cena':'Nova cena')+'</h2><button class="xbtn" id="sc_x" type="button" aria-label="Fechar">×</button></div>'
+    +'<label>Nome<input id="sc_n" maxlength="24" value="'+esc(w.n)+'" placeholder="ex.: Cinema" autocomplete="off"></label>'
+    +'<div class="srow"><span>Ícone</span><div class="tch" id="sc_i" style="margin:0"></div></div>'
+    +'<p class="cfgp" style="margin-top:12px">Para cada aparelho escolhe Ligar, Desligar ou Manter como está.</p>'
+    +'<div class="tch" style="margin:0 0 4px"><button type="button" class="tchip" id="sc_off">Luzes: desligar todas</button><button type="button" class="tchip" id="sc_on">Luzes: ligar todas</button></div><div id="sc_d"></div>'
+    +'<button class="cfbtn" id="sc_s" type="button" style="margin-top:16px">Guardar</button>'+(sc?'<button class="cfbtn ghost" id="sc_del" type="button" style="color:#ff7b72">Apagar cena</button>':'');
+  var ib=document.getElementById('sc_i'); icos.forEach(function(k){ var bt=document.createElement('button'); bt.type='button'; bt.className='tchip'+(w.ico===k?' on':''); bt.innerHTML=ICO[k]; bt.onclick=function(){ w.ico=k; [].forEach.call(ib.children,function(x){ x.classList.remove('on'); }); bt.classList.add('on'); }; ib.appendChild(bt); });
+  var dl=document.getElementById('sc_d');
+  function draw(){
+    dl.innerHTML=''; ORDER.forEach(function(rk){ var ds=DEV.filter(function(d){ return d.room===rk; }); if(!ds.length) return;
+      var hh=document.createElement('div'); hh.className='rh'; hh.textContent=R[rk].n; dl.appendChild(hh);
+      ds.forEach(function(d){ var row=document.createElement('div'); row.className='srow'; row.innerHTML='<span>'+esc(d.name)+'</span>'; var sg=document.createElement('div'); sg.className='seg';
+        [['on','Ligar'],['off','Desligar'],['','Manter']].forEach(function(o){ var bt=document.createElement('button'); bt.type='button'; bt.textContent=o[1]; if((w.a[d.id]||'')===o[0]) bt.className='on'; bt.onclick=function(){ if(o[0]) w.a[d.id]=o[0]; else delete w.a[d.id]; draw(); }; sg.appendChild(bt); });
+        row.appendChild(sg); dl.appendChild(row); }); });
+  }
+  draw();
+  document.getElementById('sc_off').onclick=function(){ DEV.forEach(function(d){ if(LIGHT_KINDS[d.kind]) w.a[d.id]='off'; }); draw(); };
+  document.getElementById('sc_on').onclick=function(){ DEV.forEach(function(d){ if(LIGHT_KINDS[d.kind]) w.a[d.id]='on'; }); draw(); };
+  document.getElementById('sc_x').onclick=function(){ SCE.hidden=true; };
+  document.getElementById('sc_s').onclick=function(){ w.n=(document.getElementById('sc_n').value||'').trim()||'Cena'; var i=-1; SCN.forEach(function(x,k){ if(x.id===w.id) i=k; }); if(i>=0) SCN[i]=w; else SCN.push(w); saveScenes(); mkScenes(); SCE.hidden=true; toast('Cena guardada'); };
+  var del=document.getElementById('sc_del'); if(del) del.onclick=function(){ SCN=SCN.filter(function(x){ return x.id!==w.id; }); saveScenes(); mkScenes(); SCE.hidden=true; };
+  SCE.hidden=false;
+}
 mkScenes(); refresh();
 
 /* ------------------------------------------------------------ ciclo */
@@ -592,7 +824,7 @@ function frame(t){
     var s=st[d.id], v=d.v+=((s.on?1:0)-d.v)*0.12, c=OFFC.clone().lerp(d.col3,v);
     if(d.kind==='heater'){ d.mark.material.emissiveIntensity=v*(0.9+(reduce?0:0.25*Math.sin(t*0.004))); d.pool.material.opacity=v*(0.25+0.3*nv); }
     else if(d.kind==='cam'){ var blink=s.on?(reduce?1:(0.5+0.5*Math.sin(t*0.006))):0; d.dot.material.color.set(0x77726a).lerp(new THREE.Color(0xff3b4e),blink); }
-    else{ d.mark.material.color.copy(c); if(d.pool) d.pool.material.opacity=v*(0.3+0.6*nv)*(d.kind==='led'?1.1:1); if(d.kind==='ceil'){ var k=0.9+0.35*v; d.mark.scale.set(k,k,k); (d.extra||[]).forEach(function(x){ x.mark.material.color.copy(c); x.mark.scale.set(k,k,k); x.pool.material.opacity=d.pool.material.opacity; }); } }
+    else{ d.mark.material.color.copy(c); var bf=0.3+0.7*((s.bri==null?100:s.bri)/100); if(d.pool&&LIGHT_KINDS[d.kind]) d.pool.material.color.copy(d.col3); if(d.pool) d.pool.material.opacity=v*(0.3+0.6*nv)*(d.kind==='led'?1.1:1)*bf; if(d.kind==='ceil'){ var k=0.9+0.35*v; d.mark.scale.set(k,k,k); (d.extra||[]).forEach(function(x){ x.mark.material.color.copy(c); x.mark.scale.set(k,k,k); x.pool.material.color.copy(d.col3); x.pool.material.opacity=d.pool.material.opacity; }); } }
     if(d.screens) d.screens.forEach(function(m){ m.emissiveIntensity=v*0.95; });
     if(LIGHT_KINDS[d.kind]){ [d.room].concat(d.room2||[]).forEach(function(rk){ litSum[rk]=(litSum[rk]||0)+v; litN[rk]=(litN[rk]||0)+1; }); }
   });
