@@ -34,6 +34,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cfgbox input,.cfgbox select{display:block;width:100%;box-sizing:border-box;margin-top:5px;background:var(--tile);border:0;border-radius:12px;padding:11px 12px;color:var(--fg);font:inherit;font-size:14px}
 .cfbtn{width:100%;border:0;border-radius:14px;padding:13px;font-weight:700;background:var(--amber);color:var(--amber-ink);margin-top:4px}
 .cfbtn.ghost{background:var(--tile);color:var(--fg);margin-top:14px}
+#cf_map .mrow{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px}
+#cf_map .mrow label{flex:1;margin:0}
+.tbtn{flex:none;border:0;border-radius:12px;background:var(--tile);color:var(--amber);font-weight:700;font-size:12.5px;padding:11px 12px}
+.sbtn{margin:0 0 12px;background:var(--tile);color:var(--amber)}
 #cf_msg{min-height:18px;margin:10px 0 6px;font-size:12.5px;color:var(--mute)}
 #cf_map h3{margin:14px 0 8px;font:700 13px var(--font-body)}
 #dn{flex:none;width:40px;height:40px;border:0;background:var(--tile);border-radius:50%;display:grid;place-items:center;padding:0}
@@ -480,7 +484,7 @@ canvas.addEventListener('pointerdown',function(){ phT=null; document.getElementB
 var cat='all';
 function catOk(d){ return cat==='all'||(cat==='luzes'&&LIGHT_KINDS[d.kind])||(cat==='clima'&&d.kind==='heater')||(cat==='cam'&&d.kind==='cam'); }
 // botões sobre os objetos, só nos quartos, na cozinha e na sala
-var BADGE_ROOMS={quarto:1,visitas:1,cozinha:1,marquise:1,sala:1}, badges=[];
+var BADGE_ROOMS={quarto:1,visitas:1,cozinha:1,marquise:1,sala:1,escritorio:1}, badges=[];
 DEV.forEach(function(d){ if(!BADGE_ROOMS[d.room]) return; var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); b.onclick=function(){ toggle(d.id,true); }; labelsEl.appendChild(b); badges.push({d:d,el:b}); });
 /* ------------------------------------------------------------ Tuya (só na app Android) */
 var NA=window.TuyaNative||null, MAPKEY='casa3d-map-v1', MAP={}, TD=[], cbs={}, cbn=0, linked=false, lastCmd={};
@@ -518,17 +522,41 @@ function sendSwitch(id,on){
 function poll(){ if(!NA) return; loadDevices().then(syncFromTuya).catch(function(){}); }
 var cfgEl=document.getElementById('cfg'), gear=document.getElementById('gear'), cfMsg=document.getElementById('cf_msg');
 function setGear(){ gear.classList.toggle('ok',linked); }
+function nrm(s){ s=String(s||'').toLowerCase(); try{ s=s.normalize('NFD').replace(/[̀-ͯ]/g,''); }catch(e){} return s; }
+var SYN={ceiling:'teto',light:'luz',lamp:'candeeiro',socket:'tomada',plug:'tomada',strip:'led',fita:'led',heater:'aquecedor',desk:'secretaria',office:'escritorio',bedroom:'quarto',living:'sala',kitchen:'cozinha',tv:'televisao',pc:'computador'};
+function toks(s){ return nrm(s).split(/[^a-z0-9]+/).map(function(w){ return SYN[w]||w; }).filter(function(w){ return w.length>2&&w!=='luz'&&w!=='the'; }); }
+function suggest(){
+  var used={}, n=0; Object.keys(MAP).forEach(function(k){ used[MAP[k]]=1; });
+  DEV.forEach(function(d){
+    if(MAP[d.id]) return; var want=toks(R[d.room].n+' '+d.name+' '+(d.kind==='plug'?'tomada':d.kind==='lamp'?'candeeiro':d.kind==='led'?'led':d.kind==='ceil'?'teto':'')), best=null, bs=0;
+    TD.forEach(function(t){ if(used[t.id]||!swCode(t)) return; var tt=toks(t.name), sc=0; tt.forEach(function(w){ if(want.indexOf(w)>=0) sc++; }); if(sc>bs){ bs=sc; best=t; } });
+    if(best&&bs>=2){ MAP[d.id]=best.id; used[best.id]=1; n++; }
+  });
+  saveMap(); syncFromTuya(); drawMap(); refresh(); cfMsg.textContent=n?('Sugeridas '+n+' associações. Confirma com "Testar".'):'Sem sugestões fiáveis. Associa à mão e usa "Testar".';
+}
+function testDev(tid){
+  var td=tdev(tid), c=swCode(td); if(!c){ cfMsg.textContent='Este aparelho não tem interruptor.'; return; }
+  var cur=td.status.filter(function(x){return x.code===c;})[0].value;
+  cfMsg.textContent='A testar "'+td.name+'"…';
+  tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:[{code:c,value:!cur}]}).then(function(r){
+    if(r.success){ td.status.forEach(function(x){ if(x.code===c) x.value=!cur; }); cfMsg.textContent='"'+td.name+'" '+(!cur?'ligou':'desligou')+'. Toca de novo para voltar.'; }
+    else cfMsg.textContent='Erro: '+(r.msg||'falhou');
+  });
+}
 function drawMap(){
   var box=document.getElementById('cf_map'); box.innerHTML='';
   if(!TD.length) return;
   var hd=document.createElement('h3'); hd.textContent='Associa cada aparelho da casa a um da Tuya'; box.appendChild(hd);
+  var sg=document.createElement('button'); sg.type='button'; sg.className='cfbtn sbtn'; sg.textContent='Sugerir por nome'; sg.onclick=suggest; box.appendChild(sg);
   var sorted=TD.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
   DEV.forEach(function(d){
+    var row=document.createElement('div'); row.className='mrow';
     var lb=document.createElement('label'); lb.appendChild(document.createTextNode(R[d.room].n+' · '+d.name));
     var sel=document.createElement('select'); var o0=document.createElement('option'); o0.value=''; o0.textContent='— não ligado —'; sel.appendChild(o0);
     sorted.forEach(function(t){ var o=document.createElement('option'); o.value=t.id; o.textContent=(t.name||t.id)+(t.online===false?' (offline)':''); if(MAP[d.id]===t.id) o.selected=true; sel.appendChild(o); });
+    var tb=document.createElement('button'); tb.type='button'; tb.className='tbtn'; tb.textContent='Testar'; tb.onclick=function(){ if(sel.value) testDev(sel.value); else cfMsg.textContent='Escolhe primeiro um aparelho da Tuya.'; };
     sel.onchange=function(){ if(sel.value) MAP[d.id]=sel.value; else delete MAP[d.id]; saveMap(); syncFromTuya(); refresh(); };
-    lb.appendChild(sel); box.appendChild(lb);
+    lb.appendChild(sel); row.appendChild(lb); row.appendChild(tb); box.appendChild(row);
   });
 }
 function connect(saveFirst){
