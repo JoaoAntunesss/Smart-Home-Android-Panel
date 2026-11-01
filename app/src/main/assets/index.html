@@ -710,10 +710,13 @@ function openTv(){
   function row(){ var r=document.createElement('div'); r.className='tvk'; b.appendChild(r); return r; }
   var r1=row(); r1.appendChild(key(ICO.power,26,'pw')); r1.appendChild(key('🔇',164)); r1.appendChild(key('⌂',3));
   var vb=document.createElement('div'); vb.className='volb';
-  function hold(lbl,code){ var x=document.createElement('button'); x.type='button'; x.textContent=lbl; x.setAttribute('aria-label',code===24?'Mais volume':'Menos volume'); var t=0, on=false;
-    function stop(){ on=false; clearInterval(t); }
-    x.addEventListener('pointerdown',function(e){ e.preventDefault(); on=true; tvKey(code); clearInterval(t); t=setInterval(function(){ if(on&&TVN.isConnected()) TVN.key(code); },220); });
-    ['pointerup','pointerleave','pointercancel'].forEach(function(n){ x.addEventListener(n,stop); }); return x; }
+  function hold(lbl,code){ var x=document.createElement('button'); x.type='button'; x.textContent=lbl; x.style.touchAction='none'; x.setAttribute('aria-label',code===24?'Mais volume':'Menos volume'); var t=0, on=false, t0=0;
+    function stop(){ on=false; clearInterval(t); t=0; }
+    ['pointerup','pointerleave','pointercancel','lostpointercapture','blur','contextmenu'].forEach(function(n){ x.addEventListener(n,stop); });
+    window.addEventListener('pointerup',stop); window.addEventListener('touchend',stop); window.addEventListener('touchcancel',stop); window.addEventListener('blur',stop);
+    x.addEventListener('pointerdown',function(e){ e.preventDefault(); try{ x.setPointerCapture(e.pointerId); }catch(_){} stop(); on=true; t0=Date.now(); tvKey(code);
+      setTimeout(function(){ if(!on||t) return; t=setInterval(function(){ if(!on||Date.now()-t0>4000||!TVN.isConnected()){ stop(); return; } TVN.key(code); },260); },450); });
+    return x; }
   var vm=document.createElement('div'); vm.className='vm'; vm.innerHTML='<small>VOLUME</small><i></i>';
   vb.appendChild(hold('−',25)); vb.appendChild(vm); vb.appendChild(hold('+',24)); b.appendChild(vb);
   var pad=document.createElement('div'); pad.className='pad';
