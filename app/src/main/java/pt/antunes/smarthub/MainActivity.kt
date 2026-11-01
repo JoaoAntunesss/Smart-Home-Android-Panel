@@ -49,8 +49,8 @@ class MainActivity : Activity() {
         web.webChromeClient = WebChromeClient()
         setContentView(web)
         if (savedInstanceState == null) web.loadUrl("file:///android_asset/index.html")
-        intent?.getStringExtra("cfg")?.let { c -> web.postDelayed({ importCfg(c) }, 2500) }
         else web.restoreState(savedInstanceState)
+        intent?.getStringExtra("cfg")?.let { c -> web.postDelayed({ importCfg(c) }, 2500) }
         fs = getSharedPreferences("hub", MODE_PRIVATE).getBoolean("fs", true)
         web.addJavascriptInterface(HubBridge(), "HubNative")
         applyFs()
