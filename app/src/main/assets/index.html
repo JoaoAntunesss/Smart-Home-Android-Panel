@@ -675,7 +675,7 @@ function catOk(d){ if(d.kind==='tv') return cat==='all'; return cat==='all'||(ca
 // botões sobre os objetos, só nos quartos, na cozinha e na sala
 var BADGE_ROOMS={quarto:1,visitas:1,cozinha:1,marquise:1,sala:1,escritorio:1}, badges=[];
 var TVD={id:'__tv',kind:'tv',x:9.82,z:2.25,room:'sala',name:'Televisão'};
-DEV.forEach(function(d){ if(!BADGE_ROOMS[d.room]&&!d.custom) return; var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); longPress(b,function(){ if(d.kind==='cam') openCam(d.id); else openDetail(d.id); },function(){ if(d.kind==='cam') openCam(d.id); else toggle(d.id,true); }); labelsEl.appendChild(b); badges.push({d:d,el:b}); });
+DEV.forEach(function(d){  var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); longPress(b,function(){ if(d.kind==='cam') openCam(d.id); else openDetail(d.id); },function(){ if(d.kind==='cam') openCam(d.id); else toggle(d.id,true); }); labelsEl.appendChild(b); badges.push({d:d,el:b}); });
 /* ------------------------------------------------------------ televisão (Google TV / TCL) */
 var TVN=window.TvNative||null, TVE=document.getElementById('tvp'), TVAPPS=[['Spotify','com.spotify.tv.android'],['YouTube','com.google.android.youtube.tv'],['Netflix','com.netflix.ninja'],['Prime Video','com.amazon.amazonvideo.livingroom']];
 var TVST='';
