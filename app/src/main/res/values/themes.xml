@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.SmartHub" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#1A1B21</item>
+        <item name="android:statusBarColor">#1A1B21</item>
+        <item name="android:navigationBarColor">#1A1B21</item>
+    </style>
+</resources>
