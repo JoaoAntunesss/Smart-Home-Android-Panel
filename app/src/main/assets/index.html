@@ -76,6 +76,27 @@ button{font:inherit;color:inherit;cursor:pointer}
 .camt .nm small{display:block;font-weight:400;opacity:.7;font-size:11px}
 .camt .lv{position:absolute;right:10px;top:10px;width:9px;height:9px;border-radius:50%;background:#ff3b4e;box-shadow:0 0 8px #ff3b4e}
 .camt .ms{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:12px;color:#b9b5ab;padding:0 12px}
+.spnp{display:flex;gap:12px;align-items:center;background:var(--tile);border-radius:16px;padding:10px;margin:12px 0}
+.spnp img{width:68px;height:68px;border-radius:10px;object-fit:cover;background:#0c0d10;flex:none}
+.spnp .t{min-width:0;flex:1}.spnp .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.spnp .t small{display:block;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spbar{height:8px;background:#2b2d36;border-radius:4px;margin-top:9px;cursor:pointer}.spbar i{display:block;height:100%;width:0;background:#1ed760;border-radius:4px}
+.spres button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:var(--tile);color:var(--fg);border-radius:12px;padding:8px 10px;margin:0 0 6px}
+.spres img{width:40px;height:40px;border-radius:6px;object-fit:cover;flex:none;background:#0c0d10}
+.spres span{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}.spres small{display:block;color:var(--mute);font-size:11.5px}
+.tvd{background:radial-gradient(120% 55% at 50% 0%,#18606d 0%,#0f2a31 42%,#0b0d10 100%)!important}
+.tvd .tvk button,.tvd .pad button,.tvd .tchip,.tvd .heat button,.tvd .xbtn,.tvd .pwr{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:#fff;-webkit-backdrop-filter:none}
+.tvd .tvk button:active,.tvd .pad button:active,.tvd .tchip:active,.tvd .heat button:active{background:rgba(255,255,255,.95)!important;color:#111!important}
+.tvd .tchip.on,.tvd .pwr.on{background:rgba(255,255,255,.95);color:#111}
+.tvd .spnp,.tvd .txt,.tvd .spres button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.tvd .tvk .pw{background:rgba(255,90,82,.22);color:#ff8a82;border-color:rgba(255,90,82,.4)}
+.tvd #dl_v{filter:drop-shadow(0 0 7px rgba(74,168,255,.6))}
+.tvd .dial svg path:first-of-type{stroke:rgba(255,255,255,.12)}
+.tvd .dial .dv b{text-shadow:0 0 18px rgba(120,220,255,.35)}
+.volb{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
+.volb button{flex:none;width:64px;height:64px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.1);color:#fff;font-size:26px;font-weight:300;padding:0}
+.volb button:active{background:rgba(255,255,255,.95);color:#111}
+.volb .vm{flex:1;text-align:center}.volb .vm small{display:block;font:700 10px var(--font-body);letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:6px}
+.volb .vm i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,#4aa8ff,#7fe3ff);box-shadow:0 0 12px rgba(74,168,255,.5)}
 .tvk{display:flex;gap:10px;justify-content:center;align-items:center;margin:12px 0}
 .tvk button{border:0;background:var(--tile);color:var(--fg);border-radius:99px;min-width:52px;height:46px;padding:0 14px;font-size:18px;font-weight:600}
 .tvk button:active{background:var(--amber);color:var(--amber-ink)}
@@ -205,6 +226,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="dt" class="ov" hidden role="dialog" aria-label="Controlos do aparelho"><div class="cfgbox" id="dtbox"></div></div>
 <div id="ad" class="ov" hidden role="dialog" aria-label="Adicionar aparelho"><div class="cfgbox" id="adbox"></div></div>
 <div id="tvp" class="ov" hidden role="dialog" aria-label="Televisão"><div class="cfgbox" id="tvbox"></div></div>
+<div id="spp" class="ov" hidden role="dialog" aria-label="Spotify"><div class="cfgbox" id="spbox"></div></div>
 <div id="sc" class="ov" hidden role="dialog" aria-label="Cena"><div class="cfgbox" id="scbox"></div></div>
 <div id="cfg" hidden role="dialog" aria-label="Ligar à Tuya"><div class="cfgbox">
   <h2>Ligar à Tuya</h2>
@@ -593,7 +615,10 @@ function mkList(){
   [].slice.call(listEl.children).forEach(function(c){ if(c!==cgEl) listEl.removeChild(c); }); renderCams();
   if(cat==='all'&&(sel==='all'||sel==='sala')){ var tr=document.createElement('div'); tr.className='row'+(st.__tv.on?' on':''); tr.tabIndex=0; tr.setAttribute('role','button'); tr.setAttribute('aria-label','Televisão, Sala');
     tr.innerHTML='<span class="ico">'+ICO.tv+'</span><div class="meta"><b>Televisão</b><small>'+(sel==='all'?'Sala · ':'')+(window.TvNative?(st.__tv.on?'ligada ao Smart Hub':'toca para controlar'):'só na app Android')+'</small></div>';
-    tr.onclick=openTv; tr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openTv(); } }; listEl.appendChild(tr); }
+    tr.onclick=openTv; tr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openTv(); } }; listEl.appendChild(tr);
+    var sr=document.createElement('div'); sr.className='row'; sr.tabIndex=0; sr.setAttribute('role','button'); sr.setAttribute('aria-label','Spotify');
+    sr.innerHTML='<span class="ico">'+ICO.music+'</span><div class="meta"><b>Spotify</b><small>'+(window.SpotifyNative?(window.SpotifyNative.isLinked()?'toca para controlar':'toca para ligar à tua conta'):'só na app Android')+'</small></div>';
+    sr.onclick=openSp; sr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openSp(); } }; listEl.appendChild(sr); }
   items.forEach(function(d){
     var s=st[d.id], row=document.createElement('div'); row.className='row'+(s.on?' on':'');
     row.tabIndex=0; row.setAttribute('role','switch'); row.setAttribute('aria-checked',s.on); row.setAttribute('aria-label',d.name+', '+R[d.room].n);
@@ -650,14 +675,21 @@ function tvStatus(){ var e=document.getElementById('tv_s'); if(!e) return; e.tex
 function tvPairUi(){ var pm=document.getElementById('tv_pm'); if(pm) pm.textContent='A TV pede emparelhamento. Toca em "Emparelhar".'; }
 function openTv(){
   var box=document.getElementById('tvbox');
-  box.innerHTML='<div class="dthead"><div><h2>Televisão</h2><p class="cfgp" style="margin:2px 0 0">Sala · <span id="tv_s"></span></p></div><button class="xbtn" id="tv_x" type="button" aria-label="Fechar">×</button></div><div id="tv_b"></div>';
+  box.className='cfgbox tvd'; box.innerHTML='<div class="dthead"><div><h2>Televisão</h2><p class="cfgp" style="margin:2px 0 0">Sala · <span id="tv_s"></span></p></div><button class="xbtn" id="tv_x" type="button" aria-label="Fechar">×</button></div><div id="tv_b"></div>';
   document.getElementById('tv_x').onclick=function(){ TVE.hidden=true; };
   var b=document.getElementById('tv_b');
   if(!TVN){ b.innerHTML='<p class="mut" style="margin-top:14px">Os comandos da TV só funcionam na app Android, na mesma rede Wi‑Fi da TV.</p>'; TVE.hidden=false; return; }
   var ip=TVN.getHost();
   function key(lbl,code,cls){ var x=document.createElement('button'); x.type='button'; x.innerHTML=lbl; if(cls) x.className=cls; x.onclick=function(){ tvKey(code); }; return x; }
   function row(){ var r=document.createElement('div'); r.className='tvk'; b.appendChild(r); return r; }
-  var r1=row(); r1.appendChild(key(ICO.power,26,'pw')); r1.appendChild(key('−',25)); r1.appendChild(key('🔇',164)); r1.appendChild(key('+',24));
+  var r1=row(); r1.appendChild(key(ICO.power,26,'pw')); r1.appendChild(key('🔇',164)); r1.appendChild(key('⌂',3));
+  var vb=document.createElement('div'); vb.className='volb';
+  function hold(lbl,code){ var x=document.createElement('button'); x.type='button'; x.textContent=lbl; x.setAttribute('aria-label',code===24?'Mais volume':'Menos volume'); var t=0, on=false;
+    function stop(){ on=false; clearInterval(t); }
+    x.addEventListener('pointerdown',function(e){ e.preventDefault(); on=true; tvKey(code); clearInterval(t); t=setInterval(function(){ if(on&&TVN.isConnected()) TVN.key(code); },220); });
+    ['pointerup','pointerleave','pointercancel'].forEach(function(n){ x.addEventListener(n,stop); }); return x; }
+  var vm=document.createElement('div'); vm.className='vm'; vm.innerHTML='<small>VOLUME</small><i></i>';
+  vb.appendChild(hold('−',25)); vb.appendChild(vm); vb.appendChild(hold('+',24)); b.appendChild(vb);
   var pad=document.createElement('div'); pad.className='pad';
   [[null],[19,'▲'],[null],[21,'◀'],[23,'OK'],[22,'▶'],[null],[20,'▼'],[null]].forEach(function(c){ if(c[0]==null){ pad.appendChild(document.createElement('i')); return; } var x=document.createElement('button'); x.type='button'; x.textContent=c[1]; x.onclick=function(){ tvKey(c[0]); }; pad.appendChild(x); });
   b.appendChild(pad);
@@ -673,6 +705,68 @@ function openTv(){
   TVE.hidden=false; tvStatus(); if(ip&&!TVN.isConnected()) TVN.connect(); else if(TVN.isConnected()){ TVST='OK'; tvStatus(); }
 }
 if(TVN&&TVN.getHost()) setTimeout(function(){ TVN.connect(); },1500);
+/* ------------------------------------------------------------ Spotify (Web API, login PKCE na app) */
+var SPN=window.SpotifyNative||null, SPE=document.getElementById('spp'), spCb={}, spn=0, SPD='', SPT=0, SPS={playing:false,prog:0,dur:0,at:0};
+SPE.addEventListener('click',function(e){ if(e.target===SPE) closeSp(); });
+function closeSp(){ SPE.hidden=true; clearInterval(SPT); }
+function sp(m,path,body){ return new Promise(function(res){ var id='s'+(++spn); spCb[id]=res; SPN.request(id,m,path,body?JSON.stringify(body):''); }); }
+window.__spCb=function(id,st2,text){ var f=spCb[id]; delete spCb[id]; if(!f) return; var j=null; try{ j=text?JSON.parse(text):null; }catch(e){} f({status:st2,json:j,text:text}); };
+window.__sp=function(ev,v){ if(ev==='ligado'){ toast('Spotify ligado'); if(!SPE.hidden) openSp(); } else if(ev==='erro') toast('Spotify: '+v); };
+function dq(path){ return SPD?(path+(path.indexOf('?')>=0?'&':'?')+'device_id='+SPD):path; }
+function spErr(r){ if(r.status===404) toast('Sem aparelho ativo: abre o Spotify na TV e escolhe-o acima'); else if(r.status===403) toast('O Spotify recusou (precisa de Premium)'); else if(r.status===401||r.status===0) toast('Spotify: '+(r.text||'sem ligação')); else if(r.status>=300) toast('Spotify: erro '+r.status); }
+function openSp(){
+  var box=document.getElementById('spbox'); box.className='cfgbox tvd'; clearInterval(SPT);
+  box.innerHTML='<div class="dthead"><div><h2>Spotify</h2><p class="cfgp" style="margin:2px 0 0" id="sp_s"></p></div><button class="xbtn" id="sp_x" type="button" aria-label="Fechar">×</button></div><div id="sp_b"></div>';
+  document.getElementById('sp_x').onclick=closeSp; var b=document.getElementById('sp_b'); SPE.hidden=false;
+  if(!SPN){ b.innerHTML='<p class="mut" style="margin-top:14px">O Spotify só funciona na app Android.</p>'; return; }
+  if(!SPN.isLinked()){
+    b.innerHTML='<p class="cfgp" style="margin-top:12px">Para controlar o Spotify aqui precisas de uma conta <b>Premium</b> e de criar uma "app" gratuita no Spotify:</p><ol class="cfgp" style="padding-left:18px;line-height:1.55"><li>Abre <b>developer.spotify.com/dashboard</b> e entra com a tua conta.</li><li>Create app. Em <b>Redirect URI</b> escreve <b>smarthub://spotify</b>. Marca <b>Web API</b>.</li><li>Em Settings copia o <b>Client ID</b> e cola aqui.</li></ol><input class="txt" id="sp_cid" placeholder="Client ID" autocomplete="off" autocapitalize="off" value="'+esc(SPN.getClientId())+'"><button class="cfbtn" id="sp_go" type="button">Ligar ao Spotify</button>';
+    document.getElementById('sp_go').onclick=function(){ var v=document.getElementById('sp_cid').value.trim(); if(!v){ toast('Cola o Client ID'); return; } SPN.setClientId(v); SPN.login(); };
+    return;
+  }
+  b.innerHTML='<div class="tch" id="sp_dev" style="margin:10px 0 0"></div>'
+   +'<div class="spnp"><img id="sp_img" alt=""><div class="t"><b id="sp_t">Nada a tocar</b><small id="sp_a"></small><div class="spbar" id="sp_bar"><i id="sp_p"></i></div></div></div>'
+   +'<div class="tvk"><button type="button" id="sp_sh" aria-label="Aleatório">🔀</button><button type="button" id="sp_pv" aria-label="Anterior">⏮</button><button type="button" id="sp_pp" aria-label="Tocar ou pausar">⏯</button><button type="button" id="sp_nx" aria-label="Seguinte">⏭</button></div>'
+   +'<div class="dsec"><h4><span>Volume</span><span id="sp_vv"></span></h4><input class="sl" id="sp_vol" type="range" min="0" max="100" value="50" aria-label="Volume"></div>'
+   +'<div class="dsec"><h4><span>Procurar</span></h4><div class="tch" style="margin:0"><input class="txt" id="sp_q" placeholder="Música, artista ou playlist" style="flex:1;margin:0"><button type="button" class="tchip" id="sp_f">Procurar</button></div><div class="spres" id="sp_r" style="margin-top:10px"></div></div>'
+   +'<div class="tch"><button type="button" class="tchip" id="sp_out">Terminar sessão</button></div>';
+  var sh=false, volT=0;
+  function act(m,path,body){ sp(m,dq(path),body).then(function(r){ if(r.status>=300||r.status===0) spErr(r); else setTimeout(poll,400); }); }
+  document.getElementById('sp_pp').onclick=function(){ if(SPS.playing) act('PUT','/v1/me/player/pause'); else act('PUT','/v1/me/player/play'); };
+  document.getElementById('sp_nx').onclick=function(){ act('POST','/v1/me/player/next'); };
+  document.getElementById('sp_pv').onclick=function(){ act('POST','/v1/me/player/previous'); };
+  document.getElementById('sp_sh').onclick=function(){ sh=!sh; this.style.background=sh?'var(--amber)':''; act('PUT','/v1/me/player/shuffle?state='+sh); };
+  document.getElementById('sp_bar').onclick=function(e){ if(!SPS.dur) return; var r=this.getBoundingClientRect(); act('PUT','/v1/me/player/seek?position_ms='+Math.round(SPS.dur*clamp((e.clientX-r.left)/r.width,0,1))); };
+  var vol=document.getElementById('sp_vol'); vol.oninput=function(){ document.getElementById('sp_vv').textContent=vol.value+'%'; clearTimeout(volT); volT=setTimeout(function(){ act('PUT','/v1/me/player/volume?volume_percent='+vol.value); },250); };
+  document.getElementById('sp_out').onclick=function(){ SPN.logout(); openSp(); };
+  function find(){ var q=document.getElementById('sp_q').value.trim(); if(!q) return; sp('GET','/v1/search?type=track,playlist&limit=6&q='+encodeURIComponent(q)).then(function(r){
+    var o=document.getElementById('sp_r'); if(!o) return; o.innerHTML=''; if(!r.json){ spErr(r); return; }
+    var it=[]; ((r.json.tracks&&r.json.tracks.items)||[]).forEach(function(t){ if(t) it.push({uri:t.uri,tr:1,n:t.name,a:(t.artists||[]).map(function(x){return x.name;}).join(', '),i:t.album&&t.album.images&&t.album.images.length?t.album.images[t.album.images.length-1].url:''}); });
+    ((r.json.playlists&&r.json.playlists.items)||[]).forEach(function(t){ if(t) it.push({uri:t.uri,tr:0,n:t.name,a:'Playlist',i:t.images&&t.images.length?t.images[t.images.length-1].url:''}); });
+    if(!it.length){ o.innerHTML='<p class="mut">Sem resultados.</p>'; return; }
+    it.forEach(function(x){ var bt=document.createElement('button'); bt.type='button'; bt.innerHTML=(x.i?'<img alt="" src="'+esc(x.i)+'">':'<img alt="">')+'<span>'+esc(x.n)+'<small>'+esc(x.a)+'</small></span>';
+      bt.onclick=function(){ act('PUT','/v1/me/player/play',x.tr?{uris:[x.uri]}:{context_uri:x.uri}); }; o.appendChild(bt); }); }); }
+  document.getElementById('sp_f').onclick=find; document.getElementById('sp_q').onkeydown=function(e){ if(e.key==='Enter') find(); };
+  var n=0;
+  function poll(){
+    if(SPE.hidden) return; var first=(n++%4===0);
+    sp('GET','/v1/me/player').then(function(r){
+      var t=document.getElementById('sp_t'); if(!t) return;
+      if(r.status===204||!r.json||!r.json.item){ SPS.playing=false; SPS.dur=0; t.textContent=r.status>=400||r.status===0?'Sem ligação':'Nada a tocar'; document.getElementById('sp_a').textContent=r.status===204?'Escolhe um aparelho acima e procura uma música':''; document.getElementById('sp_p').style.width='0'; return; }
+      var j=r.json, it=j.item; SPS={playing:!!j.is_playing,prog:j.progress_ms||0,dur:it.duration_ms||0,at:Date.now()};
+      t.textContent=it.name; document.getElementById('sp_a').textContent=(it.artists||[]).map(function(x){return x.name;}).join(', ')||(it.show&&it.show.name)||'';
+      var im=it.album&&it.album.images&&it.album.images[0]; document.getElementById('sp_img').src=im?im.url:'';
+      if(j.device&&j.device.volume_percent!=null&&document.activeElement!==vol){ vol.value=j.device.volume_percent; document.getElementById('sp_vv').textContent=vol.value+'%'; }
+      if(j.device&&!SPD) SPD=j.device.id; sh=!!j.shuffle_state; document.getElementById('sp_sh').style.background=sh?'var(--amber)':'';
+      document.getElementById('sp_s').textContent=(j.device?j.device.name:'')+(j.is_playing?' · a tocar':' · em pausa');
+    });
+    if(first) sp('GET','/v1/me/player/devices').then(function(r){ var d=document.getElementById('sp_dev'); if(!d||!r.json) { if(d&&r.status>=300) spErr(r); return; } d.innerHTML=''; var ds=r.json.devices||[];
+      if(!ds.length){ d.innerHTML='<p class="mut" style="margin:0">Nenhum aparelho Spotify ligado. Abre o Spotify na TV ou no telemóvel.</p>'; return; }
+      ds.forEach(function(x){ var c=document.createElement('button'); c.type='button'; c.className='tchip'+((SPD?SPD===x.id:x.is_active)?' on':''); c.textContent=x.name; c.onclick=function(){ SPD=x.id; sp('PUT','/v1/me/player',{device_ids:[x.id],play:true}).then(function(r2){ if(r2.status>=300) spErr(r2); setTimeout(function(){ n=0; poll(); },600); }); }; d.appendChild(c); }); });
+  }
+  poll(); SPT=setInterval(function(){ if(SPE.hidden){ clearInterval(SPT); return; } poll(); },3000);
+  clearInterval(window.__spp); window.__spp=setInterval(function(){ var p=document.getElementById('sp_p'); if(p&&SPS.playing&&SPS.dur) p.style.width=Math.min(100,(SPS.prog+(Date.now()-SPS.at))/SPS.dur*100)+'%'; },500);
+}
 /* ------------------------------------------------------------ adicionar aparelhos */
 var ADE=document.getElementById('ad'), PLE=document.getElementById('place');
 ADE.addEventListener('click',function(e){ if(e.target===ADE) ADE.hidden=true; });
@@ -875,7 +969,7 @@ function closeDetail(){ DTE.hidden=true; dtId=null; }
 DTE.addEventListener('click',function(e){ if(e.target===DTE) closeDetail(); });
 function fmtLeft(ms){ var s=Math.max(0,Math.round(ms/1000)), m=Math.floor(s/60); return m+':'+('0'+(s%60)).slice(-2); }
 function renderDetail(){
-  var d=dev(dtId); if(!d) return; var s=st[d.id], box=document.getElementById('dtbox');
+  var d=dev(dtId); if(!d) return; var s=st[d.id], box=document.getElementById('dtbox'); box.className=d.kind==='heater'?'cfgbox tvd':'cfgbox';
   box.innerHTML='<div class="dthead"><div><h2>'+esc(d.name)+'</h2><p class="cfgp" style="margin:2px 0 0">'+esc(R[d.room].n)+'</p></div><button class="xbtn" id="dt_x" type="button" aria-label="Fechar">×</button></div>'
     +'<div class="dtp"><button class="pwr'+(s.on?' on':'')+'" id="dt_p" type="button" aria-label="Ligar ou desligar">'+ICO.power+'</button><div><b>'+(s.on?'Ligado':'Desligado')+'</b><small id="dt_l"></small></div></div><div id="dt_b"></div>';
   document.getElementById('dt_x').onclick=closeDetail;
@@ -943,7 +1037,7 @@ function tickTimers(){
   if(dtId){ var s2=st[dtId], l=document.getElementById('dt_l'), t=document.getElementById('dt_t'); var txt=s2.until?fmtLeft(s2.until-now):''; if(l) l.textContent=s2.until?('Temporizador · '+txt):''; if(t) t.textContent=txt; }
 }
 setInterval(tickTimers,1000);
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeDetail(); closeCam(); document.getElementById('sc').hidden=true; document.getElementById('cfg').hidden=true; } });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeDetail(); closeCam(); closeSp(); document.getElementById('sc').hidden=true; document.getElementById('cfg').hidden=true; } });
 
 /* ------------------------------------------------------------ cenas (programas) editáveis */
 var SCK='casa3d-cenas-v1', SCN=null;

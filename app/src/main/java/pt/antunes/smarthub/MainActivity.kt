@@ -25,6 +25,7 @@ import android.webkit.WebViewClient
 
 class MainActivity : Activity() {
     private lateinit var web: WebView
+    private lateinit var spotify: SpotifyBridge
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +42,8 @@ class MainActivity : Activity() {
         }
         web.addJavascriptInterface(TuyaBridge(this, web), "TuyaNative")
         web.addJavascriptInterface(com.antunes.remote.TvBridge(this, web), "TvNative")
+        spotify = SpotifyBridge(this, web)
+        web.addJavascriptInterface(spotify, "SpotifyNative")
         web.webViewClient = WebViewClient()
         web.webChromeClient = WebChromeClient()
         setContentView(web)
@@ -49,6 +52,7 @@ class MainActivity : Activity() {
         fs = getSharedPreferences("hub", MODE_PRIVATE).getBoolean("fs", true)
         web.addJavascriptInterface(HubBridge(), "HubNative")
         applyFs()
+        intent?.data?.let { if (it.scheme == "smarthub") spotify.handleRedirect(it) }
     }
 
     private var fs = true
@@ -120,6 +124,11 @@ class MainActivity : Activity() {
             getSharedPreferences("hub", MODE_PRIVATE).edit().putBoolean("fs", on).apply()
             runOnUiThread { applyFs() }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { if (it.scheme == "smarthub") spotify.handleRedirect(it) }
     }
 
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
