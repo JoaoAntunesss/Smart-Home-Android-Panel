@@ -677,7 +677,7 @@ var BADGE_ROOMS={quarto:1,visitas:1,cozinha:1,marquise:1,sala:1,escritorio:1}, b
 var TVD={id:'__tv',kind:'tv',x:9.82,z:2.25,room:'sala',name:'Televisão'};
 DEV.forEach(function(d){  var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); longPress(b,function(){ if(d.kind==='cam') openCam(d.id); else openDetail(d.id); },function(){ if(d.kind==='cam') openCam(d.id); else toggle(d.id,true); }); labelsEl.appendChild(b); badges.push({d:d,el:b}); });
 /* ------------------------------------------------------------ televisão (Google TV / TCL) */
-var TVN=window.TvNative||null, TVE=document.getElementById('tvp'), TVAPPS=[['Spotify','com.spotify.tv.android'],['YouTube','com.google.android.youtube.tv'],['Netflix','com.netflix.ninja'],['Prime Video','com.amazon.amazonvideo.livingroom']];
+var TVN=window.TvNative||null, TVE=document.getElementById('tvp'), TVAPPS=[['Spotify','com.spotify.tv.android'],['YouTube','com.teamsmart.videomanager.tv'],['IPTV','com.antunes.player'],['Netflix','com.netflix.ninja'],['Prime Video','com.amazon.amazonvideo.livingroom']];
 var TVST='';
 TVE.addEventListener('click',function(e){ if(e.target===TVE) TVE.hidden=true; });
 window.__tv=function(ev,v){
