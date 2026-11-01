@@ -120,6 +120,13 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface fun isFullscreen(): Boolean = fs
+        @JavascriptInterface fun isTv(): Boolean {
+            val um = getSystemService(android.content.Context.UI_MODE_SERVICE) as android.app.UiModeManager
+            val pm = packageManager
+            return um.currentModeType == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION ||
+                pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK) ||
+                !pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TOUCHSCREEN)
+        }
         @JavascriptInterface fun setFullscreen(on: Boolean) {
             fs = on
             getSharedPreferences("hub", MODE_PRIVATE).edit().putBoolean("fs", on).apply()
@@ -136,5 +143,9 @@ class MainActivity : Activity() {
     override fun onResume() { super.onResume(); web.onResume() }
     override fun onPause() { web.onPause(); super.onPause() }
     @Deprecated("Deprecated in Java")
-    override fun onBackPressed() { if (web.canGoBack()) web.goBack() else super.onBackPressed() }
+    override fun onBackPressed() {
+        web.evaluateJavascript("(window.__back&&window.__back())?1:0") { r ->
+            if (r != "1") { if (web.canGoBack()) web.goBack() else super.onBackPressed() }
+        }
+    }
 }
