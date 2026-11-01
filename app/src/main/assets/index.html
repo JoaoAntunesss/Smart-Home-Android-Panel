@@ -140,6 +140,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cambox video{display:block;width:100%;background:#000;border-radius:16px;aspect-ratio:16/9;max-height:62vh}
 #cambox.big{position:fixed;top:0;right:0;bottom:0;left:0;max-width:none;max-height:none;width:auto;border-radius:0;padding:10px;display:flex;flex-direction:column;overflow-y:auto}
 #cambox.big video{flex:1;min-height:0;max-height:none;aspect-ratio:auto;object-fit:contain}
+.vwrap{position:relative}
+#cambox.big .vwrap{flex:1;min-height:0;display:flex}
+.live{position:absolute;left:10px;top:10px;display:flex;align-items:center;gap:6px;background:rgba(18,18,22,.72);border-radius:99px;padding:4px 10px 4px 8px;font:700 10.5px var(--font-body);letter-spacing:.08em;color:#fff;pointer-events:none}
+.live i{width:8px;height:8px;border-radius:50%;background:#ff3b4e;animation:lv 1.4s infinite}
+@keyframes lv{50%{opacity:.25}}
+.vctl{position:absolute;right:8px;bottom:8px;display:flex;gap:8px}
+.vctl button{width:38px;height:38px;border:0;border-radius:50%;background:rgba(18,18,22,.72);color:#fff;font-size:17px;padding:0;display:grid;place-items:center}
 .pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:8px;margin:14px auto 4px;width:max-content}
 .pad button{border:0;border-radius:50%;background:var(--tile);color:var(--fg);font-size:22px;padding:0;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:none}
 .pad button:active{background:var(--amber);color:var(--amber-ink)}
@@ -884,11 +891,15 @@ CAME.addEventListener('click',function(e){ if(e.target===CAME) closeCam(); });
 function openCam(id){
   var d=dev(id), tid=MAP[id], box=document.getElementById('cambox'), tries=0; camId=id; CAME.hidden=false; box.classList.remove('big');
   box.innerHTML='<div class="dthead"><div><h2>'+esc(d.name)+'</h2><p class="cfgp" style="margin:2px 0 0">'+esc(R[d.room].n)+'</p></div><button class="xbtn" id="cam_x" type="button" aria-label="Fechar">×</button></div>'
-    +'<video id="cv" playsinline webkit-playsinline autoplay muted controls></video><p class="mut" id="cam_m" style="margin:10px 0 0"></p>'
+    +'<div class="vwrap"><video id="cv" playsinline webkit-playsinline autoplay muted></video><div class="live"><i></i>AO VIVO</div><div class="vctl"><button type="button" id="cam_snd" aria-label="Som">🔇</button><button type="button" id="cam_snap2" aria-label="Fotografia">📷</button><button type="button" id="cam_big2" aria-label="Ecrã inteiro">⛶</button></div></div><p class="mut" id="cam_m" style="margin:10px 0 0"></p>'
     +'<div class="tch"><button class="tchip" id="cam_r" type="button">Atualizar</button><button class="tchip" id="cam_big" type="button">Ampliar</button><button class="tchip" id="cam_snap" type="button">Capturar</button></div><div id="cam_c"></div><div id="cam_rm"></div>';
   document.getElementById('cam_x').onclick=closeCam; removeBtn(d,document.getElementById('cam_rm'));
   var msg=document.getElementById('cam_m'), v=document.getElementById('cv');
-  document.getElementById('cam_big').onclick=function(){ var b=box.classList.toggle('big'); this.textContent=b?'Reduzir':'Ampliar'; };
+  function bigT(){ var b=box.classList.toggle('big'); document.getElementById('cam_big').textContent=b?'Reduzir':'Ampliar'; }
+  document.getElementById('cam_big').onclick=bigT; document.getElementById('cam_big2').onclick=bigT; v.ondblclick=bigT;
+  v.onclick=function(){ if(v.paused){ var q=v.play(); if(q&&q.catch) q.catch(function(){}); } };
+  document.getElementById('cam_snd').onclick=function(){ v.muted=!v.muted; this.textContent=v.muted?'🔇':'🔊'; };
+  document.getElementById('cam_snap2').onclick=function(){ document.getElementById('cam_snap').click(); };
   document.getElementById('cam_snap').onclick=function(){
     if(!window.HubNative||!window.HubNative.snapshot){ toast('Capturar só funciona na app Android'); return; }
     var r=v.getBoundingClientRect(); window.HubNative.snapshot(Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height));
@@ -919,10 +930,11 @@ function buildCamCtl(tid,m,msg){
   var box=document.getElementById('cam_c'); if(!box) return; box.innerHTML='';
   function dp(cmds){ tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:cmds}).then(function(r){ if(!r.success) msg.textContent='Erro: '+(r.msg||'falhou'); }); }
   var td0=tdev(tid); m=Object.assign({},m); ((td0&&td0.status)||[]).forEach(function(x){ if(!m[x.code]) m[x.code]={type:typeof x.value==='boolean'?'bool':'other',v:{}}; });
+  var ptzDp=false;
   function ptz(dir){ tcall('POST','/v1.0/cameras/'+tid+'/configs/ptz',{value:dir}).then(function(r){
     if(r.success) return;
-    if(m.ptz_control&&dir!=='STOP'){ var rv=(m.ptz_control.v&&m.ptz_control.v.range)||[], nm=rv.indexOf('up')>=0, V=nm?{UP:'up',DOWN:'down',LEFT:'left',RIGHT:'right'}:{UP:'0',RIGHT:'2',DOWN:'4',LEFT:'6'}; if(V[dir]!=null) dp([{code:'ptz_control',value:V[dir]}]); }
-    else if(dir!=='STOP') msg.textContent='Movimento: '+(r.msg||'a câmara não suporta');
+    if(dir==='STOP'){ if(ptzDp) dp([{code:'ptz_stop',value:true}]); return; }
+    if(dir!=='STOP'){ var rv=(m.ptz_control&&m.ptz_control.v&&m.ptz_control.v.range)||[], nm=rv.indexOf('up')>=0, V=nm?{UP:'up',DOWN:'down',LEFT:'left',RIGHT:'right'}:{UP:'0',RIGHT:'2',DOWN:'4',LEFT:'6'}; if(V[dir]!=null){ ptzDp=true; tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:[{code:'ptz_control',value:V[dir]}]}).then(function(r2){ if(!r2.success){ ptzDp=false; msg.textContent='Movimento indisponível: '+(r.msg||r2.msg||'falhou')+'. Na Tuya Cloud, em Service API, autoriza o serviço da câmara e tenta outra vez.'; } else msg.textContent=''; }); } }
   }); }
   var pad=document.createElement('div'); pad.className='pad';
   [[null],['UP','▲'],[null],['LEFT','◀'],['STOP','■'],['RIGHT','▶'],[null],['DOWN','▼'],[null]].forEach(function(c){
