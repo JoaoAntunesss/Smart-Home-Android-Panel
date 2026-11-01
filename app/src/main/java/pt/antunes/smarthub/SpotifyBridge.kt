@@ -16,7 +16,9 @@ import java.security.SecureRandom
 /** Spotify Web API com login PKCE (sem segredo). Os tokens ficam só no armazenamento privado da app. */
 class SpotifyBridge(private val ctx: Context, private val web: WebView) {
     private val prefs = ctx.getSharedPreferences("spotify", Context.MODE_PRIVATE)
-    private val redirect = "smarthub://spotify"
+    private val port = 8765
+    private val redirect = "http://127.0.0.1:8765/callback"
+    @Volatile private var server: java.net.ServerSocket? = null
     private val scopes = "user-read-playback-state user-modify-playback-state user-read-currently-playing"
 
     private fun js(code: String) { web.post { web.evaluateJavascript(code, null) } }
@@ -33,9 +35,45 @@ class SpotifyBridge(private val ctx: Context, private val web: WebView) {
         val ver = Base64.encodeToString(rnd, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         val ch = Base64.encodeToString(MessageDigest.getInstance("SHA-256").digest(ver.toByteArray()), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         prefs.edit().putString("ver", ver).apply()
+        startServer()
         val url = "https://accounts.spotify.com/authorize?client_id=" + enc(cid) + "&response_type=code&redirect_uri=" + enc(redirect) +
             "&code_challenge_method=S256&code_challenge=" + ch + "&scope=" + enc(scopes)
         ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
+    /** Pequeno servidor local só para receber a resposta do Spotify (sem escolher aplicações). */
+    private fun startServer() {
+        try { server?.close() } catch (e: Exception) { }
+        val ss = try { java.net.ServerSocket(port, 1, java.net.InetAddress.getByName("127.0.0.1")) } catch (e: Exception) {
+            js("window.__sp&&window.__sp('erro','porta " + port + " ocupada')"); return
+        }
+        server = ss
+        Thread {
+            try {
+                ss.soTimeout = 180000
+                while (true) {
+                    val c = ss.accept()
+                    c.soTimeout = 5000
+                    val line = try { c.getInputStream().bufferedReader().readLine() ?: "" } catch (e: Exception) { "" }
+                    val path = line.split(" ").getOrNull(1) ?: ""
+                    val body = "<html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'></head><body style='background:#0b0d10;color:#fff;font-family:sans-serif;text-align:center;padding:48px 20px'><h2>Smart Hub ligado ao Spotify</h2><p>Já podes voltar à app Smart Hub.</p></body></html>"
+                    val bytes = body.toByteArray()
+                    try {
+                        c.getOutputStream().write(("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + bytes.size + "\r\nConnection: close\r\n\r\n").toByteArray())
+                        c.getOutputStream().write(bytes); c.getOutputStream().flush()
+                    } catch (e: Exception) { }
+                    try { c.close() } catch (e: Exception) { }
+                    if (path.startsWith("/callback")) {
+                        handleRedirect(Uri.parse("http://127.0.0.1:" + port + path))
+                        try {
+                            ctx.startActivity(Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                        } catch (e: Exception) { }
+                        break
+                    }
+                }
+            } catch (e: Exception) { }
+            try { ss.close() } catch (e: Exception) { }
+        }.start()
     }
 
     /** Chamado pela atividade quando o Spotify devolve o utilizador à app. */
