@@ -5,6 +5,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -32,12 +33,33 @@ class MainActivity : Activity() {
         setContentView(web)
         if (savedInstanceState == null) web.loadUrl("file:///android_asset/index.html")
         else web.restoreState(savedInstanceState)
-        hideBars()
+        fs = getSharedPreferences("hub", MODE_PRIVATE).getBoolean("fs", true)
+        web.addJavascriptInterface(HubBridge(), "HubNative")
+        applyFs()
     }
 
-    private fun hideBars() {
+    private var fs = true
+
+    private fun applyFs() {
         @Suppress("DEPRECATION")
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        window.decorView.systemUiVisibility =
+            if (fs) (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+            else View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) applyFs()
+    }
+
+    inner class HubBridge {
+        @JavascriptInterface fun isFullscreen(): Boolean = fs
+        @JavascriptInterface fun setFullscreen(on: Boolean) {
+            fs = on
+            getSharedPreferences("hub", MODE_PRIVATE).edit().putBoolean("fs", on).apply()
+            runOnUiThread { applyFs() }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
