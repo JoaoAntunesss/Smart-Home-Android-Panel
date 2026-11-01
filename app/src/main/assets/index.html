@@ -269,6 +269,7 @@ body.tvmode :focus{outline:4px solid var(--amber)!important;outline-offset:3px;b
   <label style="margin-top:14px">Qualidade do 3D<select id="cf_q"><option value="high">Alta</option><option value="low">Leve (tablets antigos)</option></select></label>
   <p id="cf_msg" role="status"></p>
   <p id="cf_loc" class="mut" style="margin:0 0 8px"></p><div class="tch" id="cf_locb" hidden style="margin:0 0 8px"><button type="button" class="tchip" id="cf_scan">Procurar aparelhos na rede</button></div>
+  <div class="tch" style="margin:0 0 8px"><button type="button" class="tchip" id="cf_exp">Exportar configuração</button></div><textarea id="cf_exa" class="txt" rows="3" hidden readonly style="width:100%;margin:0 0 8px"></textarea>
   <div id="cf_map"></div>
   <div class="rh">Cópia de segurança</div>
   <p class="cfgp">Guarda o texto copiado (Notas, mensagem para ti). Serve para recuperar associações e cenas se reinstalares. Não inclui o Secret.</p>
@@ -1355,5 +1356,13 @@ setTimeout(resize,60);
     else if(k==='Escape'||k==='GoBack'){ if(window.__back()) e.preventDefault(); }
   });
   setTimeout(function(){ var a=cands(); if(a.length) a[0].focus(); },600);
+})();
+
+(function(){ var b=document.getElementById('cf_exp'); if(!b) return;
+  b.onclick=function(){ if(!window.HubNative||!HubNative.exportPrefs){ toast('Só na app Android'); return; }
+    var ls={}; try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^casa3d-(map|cenas|extra|td|dp|house)/.test(k)) ls[k]=localStorage.getItem(k); } }catch(e){}
+    var code=''; try{ code=btoa(unescape(encodeURIComponent(JSON.stringify({p:JSON.parse(HubNative.exportPrefs()),ls:ls})))); }catch(e){ toast('Erro ao exportar'); return; }
+    var t=document.getElementById('cf_exa'); t.hidden=false; t.value=code; t.focus(); t.select(); try{ document.execCommand('copy'); toast('Copiado. Tem as tuas chaves: não partilhes com ninguém'); }catch(e){}
+  };
 })();
 </script>
