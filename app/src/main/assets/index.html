@@ -262,6 +262,7 @@ body.house #stage{flex:1}
   <button id="cf_go" class="cfbtn" type="button">Ligar e carregar dispositivos</button>
   <label style="margin-top:14px">Qualidade do 3D<select id="cf_q"><option value="high">Alta</option><option value="low">Leve (tablets antigos)</option></select></label>
   <p id="cf_msg" role="status"></p>
+  <p id="cf_loc" class="mut" style="margin:0 0 8px"></p><div class="tch" id="cf_locb" hidden style="margin:0 0 8px"><button type="button" class="tchip" id="cf_scan">Procurar aparelhos na rede</button></div>
   <div id="cf_map"></div>
   <div class="rh">Cópia de segurança</div>
   <p class="cfgp">Guarda o texto copiado (Notas, mensagem para ti). Serve para recuperar associações e cenas se reinstalares. Não inclui o Secret.</p>
@@ -836,9 +837,62 @@ function swCode(td){
   for(j=0;j<s.length;j++) if(/^switch/.test(s[j].code)&&typeof s[j].value==='boolean') return s[j].code;
   return null;
 }
+var TDK='casa3d-td-v1', LN=window.TuyaLocalNative||null, LDPK='casa3d-dp-v1', LDP={}, tlcb={}, tln=0;
+try{ LDP=JSON.parse(localStorage.getItem(LDPK)||'{}')||{}; }catch(e){}
+window.__tlCb=function(id,ok,txt){ var f=tlcb[id]; delete tlcb[id]; if(f) f({ok:ok,text:txt}); };
+window.__tlScan=function(o){ var e=document.getElementById('cf_loc'); if(e) e.textContent='Rede local: '+o.ips+' de '+o.keys+' aparelhos encontrados'; };
+function tlcall(kind,tid,arg){ return new Promise(function(res){ var id='l'+(++tln); tlcb[id]=res; try{ if(kind==='query') LN.query(id,tid); else LN.control(id,tid,arg); }catch(e){ delete tlcb[id]; res({ok:false,text:String(e)}); } }); }
+var LIGHT_DP={switch_led:20,work_mode:21,bright_value_v2:22,temp_value_v2:23,colour_data_v2:24,bright_value:22,temp_value:23,countdown_1:26};
+var GEN_DP={switch_1:1,switch:1,countdown_1:9,temp_set:2,set_temp:2,mode:4};
+function h4(n){ n=Math.max(0,Math.round(n)); return ('0000'+n.toString(16)).slice(-4); }
+function dpMapFor(tid){
+  if(LDP[tid]) return Promise.resolve(LDP[tid]);
+  var td=tdev(tid), codes=((td&&td.status)||[]).map(function(x){ return x.code; }), base=codes.indexOf('switch_led')>=0?LIGHT_DP:GEN_DP, m={};
+  Object.keys(base).forEach(function(k){ m[k]=base[k]; });
+  return tcall('GET','/v2.0/cloud/thing/'+tid+'/shadow/properties').then(function(r){
+    if(r&&r.success&&r.result&&r.result.properties) r.result.properties.forEach(function(p){ if(p.code&&p.dp_id!=null) m[p.code]=p.dp_id; });
+    return tlcall('query',tid);
+  }).then(function(q){
+    if(q.ok){ try{ var dps=JSON.parse(q.text), sw=['switch_led','switch_1','switch'].filter(function(c){ return m[c]!=null; });
+      if(sw.length&&dps[String(m[sw[0]])]===undefined){ var b=Object.keys(dps).filter(function(k){ return typeof dps[k]==='boolean'; }).sort(function(a,b2){ return a-b2; })[0]; if(b) sw.forEach(function(c){ m[c]=+b; }); } }catch(e){} }
+    LDP[tid]=m; try{ localStorage.setItem(LDPK,JSON.stringify(LDP)); }catch(e){} return m; });
+}
+function localSend(id,cmds){
+  var tid=MAP[id]; if(!LN||!tid) return Promise.resolve(false);
+  return dpMapFor(tid).then(function(m){
+    var dps={};
+    for(var i=0;i<cmds.length;i++){ var c=cmds[i], dp=m[c.code], v=c.value; if(dp==null) return false;
+      if(c.code==='colour_data_v2'&&v&&typeof v==='object') v=h4(v.h)+h4(v.s)+h4(v.v); else if(v&&typeof v==='object') return false; else if(c.code==='colour_data') return false;
+      dps[String(dp)]=v; }
+    return tlcall('control',tid,JSON.stringify(dps)).then(function(r){ return r.ok; });
+  }).catch(function(){ return false; });
+}
+function localInit(){
+  if(!LN) return; try{
+    LN.setDevices(JSON.stringify(TD.filter(function(x){ return x.local_key; }).map(function(x){ return {id:x.id,key:x.local_key}; })));
+    LN.scan();
+  }catch(e){}
+}
+var lsBusy=false;
+function localSync(){
+  if(!LN||lsBusy||document.hidden) return; lsBusy=true; var list=DEV.filter(function(d){ return MAP[d.id]&&(LIGHT_KINDS[d.kind]||d.kind==='plug'||d.kind==='heater'); }), i=0, ch=false;
+  (function next(){
+    if(i>=list.length){ lsBusy=false; if(ch){ save(); refresh(); } return; }
+    var d=list[i++], tid=MAP[d.id];
+    if(lastCmd[d.id]&&Date.now()-lastCmd[d.id]<5000){ next(); return; }
+    dpMapFor(tid).then(function(m){ return tlcall('query',tid).then(function(q){
+      if(!q.ok) return; var dps={}; try{ dps=JSON.parse(q.text); }catch(e){ return; }
+      var sc=['switch_led','switch_1','switch'].filter(function(c){ return m[c]!=null&&typeof dps[String(m[c])]==='boolean'; })[0];
+      if(sc){ var v=dps[String(m[sc])]; if(st[d.id].on!==v){ st[d.id].on=v; ch=true; } }
+    }); }).catch(function(){}).then(next);
+  })();
+}
+setInterval(localSync,20000); setTimeout(localSync,4000);
 function loadDevices(){
   var c=tcfg(); if(!c.id||!c.hasSecret||!c.uid) return Promise.reject(new Error('faltam dados'));
-  return tcall('GET','/v1.0/users/'+c.uid+'/devices').then(function(r){ if(!r.success) throw new Error(r.msg||'a Tuya recusou'); TD=r.result||[]; linked=true; setGear(); return TD; });
+  return tcall('GET','/v1.0/users/'+c.uid+'/devices').then(function(r){
+    if(!r.success){ var cached=null; try{ cached=JSON.parse(localStorage.getItem(TDK)||'null'); }catch(e){} if(cached&&cached.length&&LN){ TD=cached; linked=true; setGear(); localInit(); throw new Error((r.msg||'a Tuya recusou')+' (a usar os aparelhos guardados)'); } throw new Error(r.msg||'a Tuya recusou'); }
+    TD=r.result||[]; linked=true; setGear(); try{ localStorage.setItem(TDK,JSON.stringify(TD)); }catch(e){} localInit(); return TD; });
 }
 function syncFromTuya(){
   if(!linked) return; var changed=false, now=Date.now();
@@ -850,9 +904,12 @@ function sendSwitch(id,on){
   var m=MAP[id]; if(!NA||!m) return; var td=tdev(m), c=swCode(td);
   if(!c){ toast('Este aparelho não tem interruptor'); return; }
   lastCmd[id]=Date.now();
-  tcall('POST','/v1.0/devices/'+m+'/commands',{commands:[{code:c,value:!!on}]}).then(function(r){
-    if(!r.success){ st[id].on=!on; save(); refresh(); toast('Erro Tuya: '+(r.msg||'falhou')); }
-    else{ td.status.forEach(function(x){ if(x.code===c) x.value=!!on; }); }
+  localSend(id,[{code:c,value:!!on}]).then(function(ok){
+    if(ok){ td.status.forEach(function(x){ if(x.code===c) x.value=!!on; }); return; }
+    tcall('POST','/v1.0/devices/'+m+'/commands',{commands:[{code:c,value:!!on}]}).then(function(r){
+      if(!r.success){ st[id].on=!on; save(); refresh(); toast('Erro Tuya: '+(r.msg||'falhou')); }
+      else{ td.status.forEach(function(x){ if(x.code===c) x.value=!!on; }); }
+    });
   });
 }
 function prefetch(){ var ps=[]; DEV.forEach(function(d){ if(MAP[d.id]&&!SPEC[MAP[d.id]]) ps.push(specOf(MAP[d.id])); }); return Promise.all(ps).then(function(){ syncFromTuya(); }); }
@@ -906,6 +963,7 @@ if(NA){
   gear.hidden=false; gear.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L4 14h7l-1 7 9-11h-7z"/></svg>';
   gear.onclick=function(){ var c=tcfg(); document.getElementById('cf_id').value=c.id||''; document.getElementById('cf_uid').value=c.uid||''; var s=document.getElementById('cf_sec'); s.value=''; s.placeholder=c.hasSecret?'(guardado)':'cola aqui'; cfgEl.hidden=false; if(c.id&&c.hasSecret&&c.uid&&!TD.length) connect(false); else drawMap(); };
   document.getElementById('cf_go').onclick=function(){ connect(true); };
+  if(LN){ document.getElementById('cf_locb').hidden=false; document.getElementById('cf_scan').onclick=function(){ document.getElementById('cf_loc').textContent='A procurar na rede…'; localInit(); if(!TD.length){ try{ LN.scan(); }catch(e){} } }; try{ var o=JSON.parse(LN.status()); document.getElementById('cf_loc').textContent='Rede local: '+o.ips+' de '+o.keys+' aparelhos encontrados'; }catch(e){} }
   var cq=document.getElementById('cf_q'); cq.value=LOW?'low':'high'; cq.onchange=function(){ try{ localStorage.setItem(QK,cq.value); }catch(e){} location.reload(); };
   document.getElementById('cf_close').onclick=function(){ cfgEl.hidden=true; };
   document.getElementById('cf_exp').onclick=function(){ var c=tcfg(), ta=document.getElementById('cf_bk'); ta.value=JSON.stringify({v:1,map:MAP,scenes:SCN,st:st,tuya:{id:c.id||'',uid:c.uid||''}}); ta.focus(); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} cfMsg.textContent=ok?'Configuração copiada. Guarda-a num sítio seguro.':'Seleciona o texto e copia-o à mão.'; };
@@ -1009,7 +1067,7 @@ function readLook(d,td){
   applyLook(d.id);
 }
 function readHeat(d,td){ var m=SPEC[td.id]; if(!m) return; var c=fromSpec(m); if(!c.tset) return; var x=td.status.filter(function(q){ return q.code===c.tset; })[0]; if(x){ var r=rg(c,c.tset); st[d.id].temp=Math.round(x.value/Math.pow(10,r.scale)); } }
-function tsend(id,cmds){ var tid=MAP[id]; if(!NA||!tid) return; lastCmd[id]=Date.now(); tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:cmds}).then(function(r){ if(!r.success) toast('Erro Tuya: '+(r.msg||'falhou')); }); }
+function tsend(id,cmds){ var tid=MAP[id]; if(!NA||!tid) return; lastCmd[id]=Date.now(); localSend(id,cmds).then(function(ok){ if(ok) return; tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:cmds}).then(function(r){ if(!r.success) toast('Erro Tuya: '+(r.msg||'falhou')); }); }); }
 function pushBri(d,c){ var s=st[d.id]; if(s.mode==='colour'&&c.col){ pushHue(d,c); return; } if(!c.bri||c.bri==='sim') return; var r=rg(c,c.bri); tsend(d.id,[{code:c.bri,value:Math.round(r.min+(r.max-r.min)*s.bri/100)}]); }
 function pushKel(d,c){ if(!c.kel||c.kel==='sim') return; var r=rg(c,c.kel), cm=[]; if(c.wm) cm.push({code:'work_mode',value:'white'}); cm.push({code:c.kel,value:Math.round(r.min+(r.max-r.min)*st[d.id].kel/100)}); tsend(d.id,cm); }
 function pushHue(d,c){ if(!c.col||c.col==='sim') return; var s=st[d.id], v2=c.col==='colour_data_v2', mx=v2?1000:255, cm=[], val={h:Math.round(s.hue||0),s:Math.round(mx*(s.sat==null?1:s.sat)),v:Math.max(v2?10:25,Math.round(mx*(s.bri==null?100:s.bri)/100))}; if(c.wm) cm.push({code:'work_mode',value:'colour'}); cm.push({code:c.col,value:v2?val:JSON.stringify(val)}); tsend(d.id,cm); }

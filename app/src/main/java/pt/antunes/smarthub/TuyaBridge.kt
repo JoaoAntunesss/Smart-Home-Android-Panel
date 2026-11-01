@@ -39,7 +39,7 @@ class TuyaBridge(ctx: Context, private val web: WebView) {
     fun request(cb: String, method: String, path: String, body: String) {
         Thread {
             val out = try {
-                if (!path.startsWith("/v1.0/")) throw IllegalArgumentException("caminho não permitido")
+                if (!path.startsWith("/v1.0/") && !path.startsWith("/v2.0/cloud/thing/")) throw IllegalArgumentException("caminho não permitido")
                 call(method, path, body)
             } catch (e: Exception) {
                 JSONObject().put("success", false).put("msg", e.message ?: e.javaClass.simpleName).toString()

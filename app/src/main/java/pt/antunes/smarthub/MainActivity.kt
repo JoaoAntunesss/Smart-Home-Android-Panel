@@ -42,6 +42,7 @@ class MainActivity : Activity() {
         }
         web.addJavascriptInterface(TuyaBridge(this, web), "TuyaNative")
         web.addJavascriptInterface(com.antunes.remote.TvBridge(this, web), "TvNative")
+        web.addJavascriptInterface(LocalBridge(this, web), "TuyaLocalNative")
         spotify = SpotifyBridge(this, web)
         web.addJavascriptInterface(spotify, "SpotifyNative")
         web.webViewClient = WebViewClient()
