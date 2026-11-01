@@ -126,7 +126,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .srow span{min-width:0}
 .rh{margin:14px 0 2px;font:700 11.5px var(--font-body);color:var(--mute);letter-spacing:.07em;text-transform:uppercase}
 .mut{color:var(--mute);font-size:12.5px}
-#cambox video{display:block;width:100%;background:#000;border-radius:16px;aspect-ratio:16/9;max-height:56vh}
+#cam .cfgbox{max-width:760px}
+#cambox video{display:block;width:100%;background:#000;border-radius:16px;aspect-ratio:16/9;max-height:62vh}
+#cambox.big{position:fixed;top:0;right:0;bottom:0;left:0;max-width:none;max-height:none;width:auto;border-radius:0;padding:10px;display:flex;flex-direction:column;overflow-y:auto}
+#cambox.big video{flex:1;min-height:0;max-height:none;aspect-ratio:auto;object-fit:contain}
+.pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:8px;margin:14px auto 4px;width:max-content}
+.pad button{border:0;border-radius:50%;background:var(--tile);color:var(--fg);font-size:22px;padding:0;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:none}
+.pad button:active{background:var(--amber);color:var(--amber-ink)}
+.pad i{display:block}
 @media (orientation:landscape) and (min-width:700px){
   body{display:grid;grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:auto minmax(0,1fr)}
   #top{grid-column:1;grid-row:1}
@@ -821,28 +828,65 @@ function openScene(sc){
 
 /* ------------------------------------------------------------ câmaras (imagem em direto via Tuya, HLS) */
 var CAME=document.getElementById('cam'), camId=null;
+window.__snap=function(ok,msg){ toast(ok?('📷 '+msg):('Erro ao capturar: '+msg)); };
 function closeCam(){ var v=document.getElementById('cv'); if(v){ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){} } CAME.hidden=true; camId=null; }
 CAME.addEventListener('click',function(e){ if(e.target===CAME) closeCam(); });
 function openCam(id){
-  var d=dev(id), tid=MAP[id], box=document.getElementById('cambox'); camId=id; CAME.hidden=false;
+  var d=dev(id), tid=MAP[id], box=document.getElementById('cambox'), tries=0; camId=id; CAME.hidden=false; box.classList.remove('big');
   box.innerHTML='<div class="dthead"><div><h2>'+esc(d.name)+'</h2><p class="cfgp" style="margin:2px 0 0">'+esc(R[d.room].n)+'</p></div><button class="xbtn" id="cam_x" type="button" aria-label="Fechar">×</button></div>'
-    +'<video id="cv" playsinline autoplay muted controls></video><p class="mut" id="cam_m" style="margin:10px 0 0"></p><div class="tch"><button class="tchip" id="cam_r" type="button">Atualizar</button></div>';
+    +'<video id="cv" playsinline webkit-playsinline autoplay muted controls></video><p class="mut" id="cam_m" style="margin:10px 0 0"></p>'
+    +'<div class="tch"><button class="tchip" id="cam_r" type="button">Atualizar</button><button class="tchip" id="cam_big" type="button">Ampliar</button><button class="tchip" id="cam_snap" type="button">Capturar</button></div><div id="cam_c"></div>';
   document.getElementById('cam_x').onclick=closeCam;
-  var msg=document.getElementById('cam_m');
+  var msg=document.getElementById('cam_m'), v=document.getElementById('cv');
+  document.getElementById('cam_big').onclick=function(){ var b=box.classList.toggle('big'); this.textContent=b?'Reduzir':'Ampliar'; };
+  document.getElementById('cam_snap').onclick=function(){
+    if(!window.HubNative||!window.HubNative.snapshot){ toast('Capturar só funciona na app Android'); return; }
+    var r=v.getBoundingClientRect(); window.HubNative.snapshot(Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height));
+  };
+  function play(url){
+    var n=0; v.muted=true;
+    v.onplaying=function(){ msg.textContent=''; };
+    v.onerror=function(){ if(camId!==id) return; if(tries++<2){ msg.textContent='A tentar de novo…'; setTimeout(go,1500); } else msg.textContent='O telemóvel não conseguiu reproduzir a transmissão.'; };
+    v.oncanplay=function(){ var q=v.play(); if(q&&q.catch) q.catch(function(){}); };
+    v.src=url; v.load();
+    (function t(){ var q=v.play(); if(q&&q.catch) q.catch(function(){ if(camId===id&&n++<10) setTimeout(t,700); }); })();
+  }
   function go(){
-    var v=document.getElementById('cv');
     if(!NA){ msg.textContent='A imagem só funciona na app Android ligada à Tuya.'; return; }
     if(!tid){ msg.textContent='Associa esta câmara a um aparelho da Tuya (raio → associações).'; return; }
     msg.textContent='A ligar à câmara…';
     tcall('POST','/v1.0/devices/'+tid+'/stream/actions/allocate',{type:'HLS'}).then(function(r){
       if(camId!==id) return;
       if(!r.success||!r.result||!r.result.url){ var m=String(r.msg||'erro'); msg.textContent='Sem imagem: '+m+(/permission|subscri|auth/i.test(m)?'. No projeto da Tuya, ativa o serviço "IoT Video Live Stream" em Service API.':''); return; }
-      msg.textContent='';
-      v.onerror=function(){ msg.textContent='O telemóvel não conseguiu reproduzir a transmissão.'; };
-      v.src=r.result.url; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){});
+      msg.textContent='A carregar a imagem…'; play(r.result.url);
     });
   }
-  document.getElementById('cam_r').onclick=go; go();
+  document.getElementById('cam_r').onclick=function(){ tries=0; go(); };
+  go();
+  if(NA&&tid) specOf(tid).then(function(m){ if(camId!==id) return; buildCamCtl(tid,m,msg); });
+}
+function buildCamCtl(tid,m,msg){
+  var box=document.getElementById('cam_c'); if(!box) return; box.innerHTML='';
+  function dp(cmds){ tcall('POST','/v1.0/devices/'+tid+'/commands',{commands:cmds}).then(function(r){ if(!r.success) msg.textContent='Erro: '+(r.msg||'falhou'); }); }
+  if(m.ptz_control){
+    var rv=(m.ptz_control.v&&m.ptz_control.v.range)||[], named=rv.indexOf('up')>=0, V=named?{up:'up',down:'down',left:'left',right:'right'}:{up:'0',right:'2',down:'4',left:'6'};
+    var pad=document.createElement('div'); pad.className='pad';
+    [[null],['up','▲'],[null],['left','◀'],[null],['right','▶'],[null],['down','▼'],[null]].forEach(function(c){
+      if(!c[0]){ pad.appendChild(document.createElement('i')); return; }
+      var b=document.createElement('button'); b.type='button'; b.textContent=c[1]; b.setAttribute('aria-label','Mover '+c[0]);
+      b.addEventListener('pointerdown',function(e){ e.preventDefault(); dp([{code:'ptz_control',value:V[c[0]]}]); });
+      var stop=function(){ if(m.ptz_stop) dp([{code:'ptz_stop',value:true}]); };
+      ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ b.addEventListener(ev,function(e){ if(b.dataset.down){ delete b.dataset.down; stop(); } }); });
+      b.addEventListener('pointerdown',function(){ b.dataset.down='1'; });
+      pad.appendChild(b); });
+    box.appendChild(pad);
+  }
+  var td=tdev(tid), TG=[['basic_private','Privacidade'],['motion_switch','Deteção de movimento'],['basic_indicator','LED de estado'],['basic_flip','Inverter imagem'],['basic_osd','Marca de água']], tc=document.createElement('div'); tc.className='tch';
+  var any=false;
+  TG.forEach(function(g){ if(!m[g[0]]||m[g[0]].type!=='bool') return; any=true;
+    var cur=td&&td.status.filter(function(x){ return x.code===g[0]; })[0], on=!!(cur&&cur.value), bt=document.createElement('button'); bt.type='button'; bt.className='tchip'+(on?' on':''); bt.textContent=g[1];
+    bt.onclick=function(){ on=!on; bt.classList.toggle('on',on); dp([{code:g[0],value:on}]); if(cur) cur.value=on; }; tc.appendChild(bt); });
+  if(any) box.appendChild(tc);
 }
 mkScenes(); refresh();
 
