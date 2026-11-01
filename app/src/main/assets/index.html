@@ -199,6 +199,29 @@ button{font:inherit;color:inherit;cursor:pointer}
   .ov{align-items:center}
   .ov .cfgbox{border-radius:28px;max-height:86vh}
 }
+#hm{flex:none;width:40px;height:40px;border:0;background:var(--tile);border-radius:50%;display:grid;place-items:center;padding:0}
+#hm svg{width:19px;height:19px}
+body.house #hm{background:var(--amber);color:var(--amber-ink)}
+#dock{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:none;flex-wrap:wrap;justify-content:center;gap:9px;padding:0 14px;z-index:4;pointer-events:none}
+body.house #dock{display:flex}
+#dock button{pointer-events:auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(18,18,22,.8);color:#f4f1ea;display:grid;place-items:center;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#dock button svg{width:20px;height:20px}
+#dock button:active{background:#f4f1ea;color:#111}
+#dock i{width:1px;height:26px;background:rgba(255,255,255,.18);align-self:center;pointer-events:none}
+body.house #sheet,body.house #sum,body.house #hint{display:none}
+body.house #top{padding-bottom:2px}
+body.house #top h1{font-size:17px}
+body.house #stage{flex:1}
+@media (orientation:landscape) and (min-width:700px){ body.house{grid-template-columns:minmax(0,1fr)} body.house #top,body.house #stage{grid-column:1} }
+@media (max-width:699px),(max-height:520px){
+  .ov .cfgbox{max-height:74vh;padding-top:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  .pad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:6px;margin:8px auto 2px}
+  .dial{width:176px}.dial .dv b{font-size:36px}
+  .volb{margin:8px 0 2px}.volb button{width:50px;height:50px}
+  .tvk{margin:8px 0}.tvk button{height:40px;min-width:46px}
+  .dthead h2{font-size:18px}
+  #cambox video{max-height:34vh}
+}
 @media (prefers-reduced-motion:reduce){.row,#toast,#hint{transition:none}}
 </style>
 
@@ -207,12 +230,13 @@ button{font:inherit;color:inherit;cursor:pointer}
     <h1>A minha casa</h1>
     <p id="sum"></p>
   </div>
-  <div class="hr"><button id="fs" type="button" aria-label="Ecrã inteiro"></button><button id="gear" type="button" aria-label="Ligar à Tuya" hidden></button><button id="dn" type="button" aria-pressed="true" aria-label="Alternar dia e noite"></button></div>
+  <div class="hr"><button id="hm" type="button" aria-label="Só a casa" aria-pressed="false"></button><button id="fs" type="button" aria-label="Ecrã inteiro"></button><button id="gear" type="button" aria-label="Ligar à Tuya" hidden></button><button id="dn" type="button" aria-pressed="true" aria-label="Alternar dia e noite"></button></div>
 </header>
 <main id="stage">
   <canvas id="c" aria-label="Casa em 3D. Arrasta para rodar, toca nas luzes para ligar ou desligar."></canvas>
   <div id="labels"></div>
   <div id="toast" role="status"></div>
+  <div id="dock" aria-label="Atalhos"></div>
   <div id="place" hidden><span id="place_t"></span><button type="button" id="place_x">Cancelar</button></div>
   <div id="hint">Arrasta para rodar · pinça para aproximar · toca nas luzes</div>
 </main>
@@ -227,6 +251,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="ad" class="ov" hidden role="dialog" aria-label="Adicionar aparelho"><div class="cfgbox" id="adbox"></div></div>
 <div id="tvp" class="ov" hidden role="dialog" aria-label="Televisão"><div class="cfgbox" id="tvbox"></div></div>
 <div id="spp" class="ov" hidden role="dialog" aria-label="Spotify"><div class="cfgbox" id="spbox"></div></div>
+<div id="cgo" class="ov" hidden role="dialog" aria-label="Câmaras"><div class="cfgbox" id="cgbox"></div></div>
 <div id="sc" class="ov" hidden role="dialog" aria-label="Cena"><div class="cfgbox" id="scbox"></div></div>
 <div id="cfg" hidden role="dialog" aria-label="Ligar à Tuya"><div class="cfgbox">
   <h2>Ligar à Tuya</h2>
@@ -617,7 +642,7 @@ function mkList(){
     tr.innerHTML='<span class="ico">'+ICO.tv+'</span><div class="meta"><b>Televisão</b><small>'+(sel==='all'?'Sala · ':'')+(window.TvNative?(st.__tv.on?'ligada ao Smart Hub':'toca para controlar'):'só na app Android')+'</small></div>';
     tr.onclick=openTv; tr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openTv(); } }; listEl.appendChild(tr);
     var sr=document.createElement('div'); sr.className='row'; sr.tabIndex=0; sr.setAttribute('role','button'); sr.setAttribute('aria-label','Spotify');
-    sr.innerHTML='<span class="ico">'+ICO.music+'</span><div class="meta"><b>Spotify</b><small>'+(window.SpotifyNative?(window.SpotifyNative.isLinked()?'toca para controlar':'toca para ligar à tua conta'):'só na app Android')+'</small></div>';
+    sr.innerHTML='<span class="ico">'+ICO.spot+'</span><div class="meta"><b>Spotify</b><small>'+(window.SpotifyNative?(window.SpotifyNative.isLinked()?'toca para controlar':'toca para ligar à tua conta'):'só na app Android')+'</small></div>';
     sr.onclick=openSp; sr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openSp(); } }; listEl.appendChild(sr); }
   items.forEach(function(d){
     var s=st[d.id], row=document.createElement('div'); row.className='row'+(s.on?' on':'');
@@ -907,6 +932,35 @@ ICO.power='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 ICO.sliders='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>';
 ICO.expand='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 
+/* ------------------------------------------------------------ modo "só a casa" com atalhos redondos */
+ICO.spot='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M6.5 9.5c3.6-1.1 7.6-.8 11 1.2M7.3 13c3-.8 6-.5 8.6 1M8 16.3c2.3-.6 4.5-.4 6.4.7"/></svg>';
+ICO.house='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+ICO.cam='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5"/></svg>';
+ICO.list='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>';
+var HMB=document.getElementById('hm'), DOCK=document.getElementById('dock'), HKEY='casa3d-house-v1';
+HMB.innerHTML=ICO.house;
+function setHouse(on,keep){ document.body.classList.toggle('house',on); HMB.setAttribute('aria-pressed',on); if(!keep){ try{ localStorage.setItem(HKEY,on?'1':'0'); }catch(e){} } mkDock(); setTimeout(resize,30); setTimeout(resize,300); }
+HMB.onclick=function(){ setHouse(!document.body.classList.contains('house')); };
+function dbtn(ico,label,fn){ var b=document.createElement('button'); b.type='button'; b.innerHTML=ico; b.setAttribute('aria-label',label); b.title=label; b.onclick=fn; DOCK.appendChild(b); return b; }
+function openCams(){
+  var cams=DEV.filter(function(d){ return d.kind==='cam'; }); if(!cams.length) return; if(cams.length===1){ openCam(cams[0].id); return; }
+  var box=document.getElementById('cgbox'), O=document.getElementById('cgo'); box.className='cfgbox';
+  box.innerHTML='<div class="dthead"><h2>Câmaras</h2><button class="xbtn" id="cg_x" type="button" aria-label="Fechar">×</button></div><div class="tch" id="cg_l"></div>';
+  document.getElementById('cg_x').onclick=function(){ O.hidden=true; }; O.onclick=function(e){ if(e.target===O) O.hidden=true; };
+  var l=document.getElementById('cg_l'); cams.forEach(function(d){ var b=document.createElement('button'); b.type='button'; b.className='tchip'; b.textContent=d.name; b.onclick=function(){ O.hidden=true; openCam(d.id); }; l.appendChild(b); });
+  O.hidden=false;
+}
+function mkDock(){
+  if(!DOCK) return; DOCK.innerHTML=''; if(!document.body.classList.contains('house')) return;
+  SCN.forEach(function(sc){ dbtn(ICO[sc.ico]||ICO.bulb,sc.n,function(){ applyScene(sc); }); });
+  DOCK.appendChild(document.createElement('i'));
+  dbtn(ICO.tv,'Televisão',openTv); dbtn(ICO.spot,'Spotify',openSp);
+  if(DEV.some(function(d){ return d.kind==='cam'; })) dbtn(ICO.cam,'Câmaras',openCams);
+  if(dev('sa_heat')) dbtn(ICO.heater,'Aquecedor',function(){ openDetail('sa_heat'); });
+  dbtn(ICO.plus,'Novo aparelho',openAdd);
+  DOCK.appendChild(document.createElement('i'));
+  dbtn(ICO.list,'Mostrar a lista',function(){ setHouse(false); });
+}
 /* ------------------------------------------------------------ ecrã inteiro */
 var fsb=document.getElementById('fs'); fsb.innerHTML=ICO.expand;
 fsb.onclick=function(){
@@ -1061,7 +1115,7 @@ function applyScene(sc){
   DEV.forEach(function(d){ if(pv[d.id]!==st[d.id].on) sendSwitch(d.id,st[d.id].on); });
 }
 function mkScenes(){
-  scenesEl.innerHTML='';
+  scenesEl.innerHTML=''; if(typeof mkDock==='function'&&typeof DOCK!=='undefined') setTimeout(mkDock,0);
   SCN.forEach(function(sc){ var b=document.createElement('button'); b.type='button'; b.className='scene'; b.innerHTML=(ICO[sc.ico]||ICO.bulb)+'<span>'+esc(sc.n)+'</span>'; longPress(b,function(){ openScene(sc); },function(){ applyScene(sc); }); scenesEl.appendChild(b); });
   var ad=document.createElement('button'); ad.type='button'; ad.className='scene add'; ad.innerHTML=ICO.plus+'<span>Nova cena</span>'; ad.onclick=function(){ openScene(null); }; scenesEl.appendChild(ad);
 }
@@ -1171,6 +1225,7 @@ function buildCamCtl(tid,m,msg){
   if(any) box.appendChild(tc);
 }
 mkScenes(); refresh();
+(function(){ var v=null; try{ v=localStorage.getItem(HKEY); }catch(e){} var small=Math.min(window.innerWidth,window.innerHeight)<600; if(v==='1'||(v===null&&small)) setHouse(true,v===null); else mkDock(); })();
 
 /* ------------------------------------------------------------ ciclo */
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
