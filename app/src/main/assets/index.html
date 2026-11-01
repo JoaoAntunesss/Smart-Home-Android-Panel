@@ -126,6 +126,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .srow span{min-width:0}
 .rh{margin:14px 0 2px;font:700 11.5px var(--font-body);color:var(--mute);letter-spacing:.07em;text-transform:uppercase}
 .mut{color:var(--mute);font-size:12.5px}
+#cambox video{display:block;width:100%;background:#000;border-radius:16px;aspect-ratio:16/9;max-height:56vh}
 @media (orientation:landscape) and (min-width:700px){
   body{display:grid;grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:auto minmax(0,1fr)}
   #top{grid-column:1;grid-row:1}
@@ -157,6 +158,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="list"></div>
 </section>
 
+<div id="cam" class="ov" hidden role="dialog" aria-label="Câmara"><div class="cfgbox" id="cambox"></div></div>
 <div id="dt" class="ov" hidden role="dialog" aria-label="Controlos do aparelho"><div class="cfgbox" id="dtbox"></div></div>
 <div id="sc" class="ov" hidden role="dialog" aria-label="Cena"><div class="cfgbox" id="scbox"></div></div>
 <div id="cfg" hidden role="dialog" aria-label="Ligar à Tuya"><div class="cfgbox">
@@ -466,7 +468,7 @@ var ray=new THREE.Raycaster(), v2=new THREE.Vector2();
 function tapAt(cx,cy){
   var b=canvas.getBoundingClientRect(); v2.set(((cx-b.left)/b.width)*2-1,-((cy-b.top)/b.height)*2+1); ray.setFromCamera(v2,camera);
   var h=ray.intersectObjects(hits,false);
-  if(h.length){ toggle(h[0].object.userData.dev,true); return; }
+  if(h.length){ var hd=dev(h[0].object.userData.dev); if(hd.kind==='cam') openCam(hd.id); else toggle(hd.id,true); return; }
   var f=ray.intersectObjects(floors,false);
   if(f.length){ var k=f[0].object.userData.room; setSel(sel===k?'all':k); }
 }
@@ -508,10 +510,10 @@ function mkList(){
   items.forEach(function(d){
     var s=st[d.id], row=document.createElement('div'); row.className='row'+(s.on?' on':'');
     row.tabIndex=0; row.setAttribute('role','switch'); row.setAttribute('aria-checked',s.on); row.setAttribute('aria-label',d.name+', '+R[d.room].n);
-    var state=d.kind==='cam'?(s.on?'a gravar':'em pausa'):d.kind==='heater'?(s.on?'ligado · '+s.temp+'°':'desligado'):d.kind==='plug'?(s.on?'ligada':'desligada'):(s.on?'acesa':'apagada');
+    var state=d.kind==='cam'?'toca para ver':d.kind==='heater'?(s.on?'ligado · '+s.temp+'°':'desligado'):d.kind==='plug'?(s.on?'ligada':'desligada'):(s.on?'acesa':'apagada');
     row.innerHTML='<span class="ico">'+kindIco(d)+'</span><div class="meta"><b>'+esc(d.name)+'</b><small>'+(sel==='all'?esc(R[d.room].n)+' · ':'')+state+'</small></div>';
     if(d.kind!=='cam'){ var mb=document.createElement('button'); mb.type='button'; mb.className='more'; mb.setAttribute('aria-label','Controlos de '+d.name); mb.innerHTML=ICO.sliders; mb.onclick=function(e){ e.stopPropagation(); openDetail(d.id); }; mb.addEventListener('pointerdown',function(e){ e.stopPropagation(); }); row.appendChild(mb); }
-    longPress(row,function(){ if(d.kind!=='cam') openDetail(d.id); },function(){ toggle(d.id,false); });
+    longPress(row,function(){ if(d.kind==='cam') openCam(d.id); else openDetail(d.id); },function(){ if(d.kind==='cam') openCam(d.id); else toggle(d.id,false); });
     row.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(d.id,false); } };
     listEl.appendChild(row);
   });
@@ -534,7 +536,7 @@ var cat='all';
 function catOk(d){ return cat==='all'||(cat==='luzes'&&LIGHT_KINDS[d.kind])||(cat==='clima'&&d.kind==='heater')||(cat==='cam'&&d.kind==='cam'); }
 // botões sobre os objetos, só nos quartos, na cozinha e na sala
 var BADGE_ROOMS={quarto:1,visitas:1,cozinha:1,marquise:1,sala:1,escritorio:1}, badges=[];
-DEV.forEach(function(d){ if(!BADGE_ROOMS[d.room]) return; var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); longPress(b,function(){ openDetail(d.id); },function(){ toggle(d.id,true); }); labelsEl.appendChild(b); badges.push({d:d,el:b}); });
+DEV.forEach(function(d){ if(!BADGE_ROOMS[d.room]) return; var b=document.createElement('button'); b.type='button'; b.className='badge'; b.setAttribute('aria-label',d.name+', '+R[d.room].n); b.innerHTML=kindIco(d); longPress(b,function(){ if(d.kind==='cam') openCam(d.id); else openDetail(d.id); },function(){ if(d.kind==='cam') openCam(d.id); else toggle(d.id,true); }); labelsEl.appendChild(b); badges.push({d:d,el:b}); });
 /* ------------------------------------------------------------ Tuya (só na app Android) */
 var NA=window.TuyaNative||null, MAPKEY='casa3d-map-v1', MAP={}, TD=[], cbs={}, cbn=0, linked=false, lastCmd={};
 try{ MAP=JSON.parse(localStorage.getItem(MAPKEY)||'{}')||{}; }catch(e){}
@@ -765,7 +767,7 @@ function tickTimers(){
   if(dtId){ var s2=st[dtId], l=document.getElementById('dt_l'), t=document.getElementById('dt_t'); var txt=s2.until?fmtLeft(s2.until-now):''; if(l) l.textContent=s2.until?('Temporizador · '+txt):''; if(t) t.textContent=txt; }
 }
 setInterval(tickTimers,1000);
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeDetail(); document.getElementById('sc').hidden=true; document.getElementById('cfg').hidden=true; } });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeDetail(); closeCam(); document.getElementById('sc').hidden=true; document.getElementById('cfg').hidden=true; } });
 
 /* ------------------------------------------------------------ cenas (programas) editáveis */
 var SCK='casa3d-cenas-v1', SCN=null;
@@ -815,6 +817,32 @@ function openScene(sc){
   document.getElementById('sc_s').onclick=function(){ w.n=(document.getElementById('sc_n').value||'').trim()||'Cena'; var i=-1; SCN.forEach(function(x,k){ if(x.id===w.id) i=k; }); if(i>=0) SCN[i]=w; else SCN.push(w); saveScenes(); mkScenes(); SCE.hidden=true; toast('Cena guardada'); };
   var del=document.getElementById('sc_del'); if(del) del.onclick=function(){ SCN=SCN.filter(function(x){ return x.id!==w.id; }); saveScenes(); mkScenes(); SCE.hidden=true; };
   SCE.hidden=false;
+}
+
+/* ------------------------------------------------------------ câmaras (imagem em direto via Tuya, HLS) */
+var CAME=document.getElementById('cam'), camId=null;
+function closeCam(){ var v=document.getElementById('cv'); if(v){ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){} } CAME.hidden=true; camId=null; }
+CAME.addEventListener('click',function(e){ if(e.target===CAME) closeCam(); });
+function openCam(id){
+  var d=dev(id), tid=MAP[id], box=document.getElementById('cambox'); camId=id; CAME.hidden=false;
+  box.innerHTML='<div class="dthead"><div><h2>'+esc(d.name)+'</h2><p class="cfgp" style="margin:2px 0 0">'+esc(R[d.room].n)+'</p></div><button class="xbtn" id="cam_x" type="button" aria-label="Fechar">×</button></div>'
+    +'<video id="cv" playsinline autoplay muted controls></video><p class="mut" id="cam_m" style="margin:10px 0 0"></p><div class="tch"><button class="tchip" id="cam_r" type="button">Atualizar</button></div>';
+  document.getElementById('cam_x').onclick=closeCam;
+  var msg=document.getElementById('cam_m');
+  function go(){
+    var v=document.getElementById('cv');
+    if(!NA){ msg.textContent='A imagem só funciona na app Android ligada à Tuya.'; return; }
+    if(!tid){ msg.textContent='Associa esta câmara a um aparelho da Tuya (raio → associações).'; return; }
+    msg.textContent='A ligar à câmara…';
+    tcall('POST','/v1.0/devices/'+tid+'/stream/actions/allocate',{type:'HLS'}).then(function(r){
+      if(camId!==id) return;
+      if(!r.success||!r.result||!r.result.url){ var m=String(r.msg||'erro'); msg.textContent='Sem imagem: '+m+(/permission|subscri|auth/i.test(m)?'. No projeto da Tuya, ativa o serviço "IoT Video Live Stream" em Service API.':''); return; }
+      msg.textContent='';
+      v.onerror=function(){ msg.textContent='O telemóvel não conseguiu reproduzir a transmissão.'; };
+      v.src=r.result.url; var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){});
+    });
+  }
+  document.getElementById('cam_r').onclick=go; go();
 }
 mkScenes(); refresh();
 
