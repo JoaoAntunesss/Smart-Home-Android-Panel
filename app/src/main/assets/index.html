@@ -184,7 +184,7 @@ var sel='all';
 /* ---------------------------------------------------------------- scene */
 var stage=document.getElementById('stage'), canvas=document.getElementById('c');
 var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false});
-var QK='casa3d-q', LOW=/Android [4-6][.;]/.test(navigator.userAgent);
+var QK='casa3d-q', LOW=false;
 try{ var qv=localStorage.getItem(QK); if(qv) LOW=(qv==='low'); }catch(e){}
 renderer.setPixelRatio(LOW?1:Math.min(window.devicePixelRatio||1,2));
 renderer.shadowMap.enabled=!LOW; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
